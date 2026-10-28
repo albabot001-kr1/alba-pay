@@ -1,0 +1,16 @@
+{
+  "name": "알바 월급 계산기",
+  "short_name": "알바월급",
+  "description": "출근한 날만 누르면 이번 달 월급이 자동으로 계산돼요. 기록은 내 기기에만 저장됩니다.",
+  "lang": "ko",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f4f5f9",
+  "theme_color": "#2563eb",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

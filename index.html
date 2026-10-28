@@ -1,0 +1,651 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#2563eb">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="알바월급">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" href="icon-192.png">
+<title>알바 월급 계산기</title>
+<style>
+:root{
+  --bg:#f4f5f9;--card:#fff;--text:#191c23;--muted:#6b7280;--line:#e4e6ec;
+  --accent:#2563eb;--accent-soft:#e8efff;--danger:#dc2626;
+  --warn-bg:#fff6e5;--warn:#a15c07;--sun:#dc2626;--sat:#2563eb;--shadow:0 1px 3px rgba(0,0,0,.06);
+}
+@media (prefers-color-scheme:dark){:root{
+  --bg:#0f1115;--card:#181b22;--text:#e8eaf0;--muted:#9aa3b2;--line:#2a2f3a;
+  --accent:#5b8cff;--accent-soft:#1c2640;--danger:#f87171;
+  --warn-bg:#2b2112;--warn:#fbbf24;--sun:#f87171;--sat:#7aa2ff;--shadow:none;
+}}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Pretendard","Malgun Gothic","Noto Sans KR",sans-serif;
+  -webkit-tap-highlight-color:transparent;padding-bottom:calc(76px + env(safe-area-inset-bottom));font-size:15px;line-height:1.45}
+button,input,select{font:inherit;color:inherit}
+button{cursor:pointer}
+.app{max-width:520px;margin:0 auto;padding:0 16px}
+header{position:sticky;top:0;z-index:5;background:var(--bg);display:flex;align-items:center;justify-content:space-between;
+  padding:calc(10px + env(safe-area-inset-top)) 0 8px}
+.month{font-size:20px;font-weight:700;border:0;background:none;padding:6px 8px}
+.iconbtn{width:40px;height:40px;border-radius:12px;border:1px solid var(--line);background:var(--card);font-size:18px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px;margin:12px 0;box-shadow:var(--shadow)}
+.muted{color:var(--muted)} .small{font-size:13px} .tiny{font-size:12px}
+.row{display:flex;align-items:center;gap:8px} .between{justify-content:space-between} .wrap{flex-wrap:wrap}
+.grow{flex:1;min-width:0}
+h2{font-size:17px;margin:0 0 10px} h3{font-size:16px;margin:0}
+.big{font-size:28px;font-weight:800;letter-spacing:-.5px}
+.num{font-variant-numeric:tabular-nums}
+
+.chips{display:flex;gap:8px;overflow-x:auto;padding:2px 0 6px;scrollbar-width:none}
+.chip{flex:none;border:1.5px solid var(--line);background:var(--card);border-radius:999px;padding:7px 12px;font-size:14px;display:flex;align-items:center;gap:6px}
+.chip.on{border-color:var(--c);background:color-mix(in srgb,var(--c) 15%,var(--card));font-weight:600}
+.dot{width:10px;height:10px;border-radius:50%;background:var(--c);flex:none}
+.seg{display:flex;background:var(--line);border-radius:12px;padding:3px;gap:3px}
+.seg button{flex:1;border:0;background:transparent;padding:8px;border-radius:9px;color:var(--muted);font-weight:600;font-size:14px}
+.seg button.on{background:var(--card);color:var(--text);box-shadow:0 1px 2px rgba(0,0,0,.1)}
+
+.grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px}
+.dow{text-align:center;font-size:12px;color:var(--muted);padding:2px 0}
+.dow.sun{color:var(--sun)} .dow.sat{color:var(--sat)}
+.day{min-height:66px;border-radius:10px;background:var(--card);border:1px solid var(--line);padding:4px 3px;display:flex;flex-direction:column;gap:2px;text-align:left;min-width:0}
+.day .n{font-size:13px;font-weight:600;padding-left:2px}
+.day.sun .n{color:var(--sun)} .day.sat .n{color:var(--sat)}
+.day.today{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
+.day.has{background:color-mix(in srgb,var(--accent) 4%,var(--card))}
+.bar{font-size:10px;line-height:1.35;border-radius:4px;padding:0 3px;background:color-mix(in srgb,var(--c) 25%,transparent);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.blank{visibility:hidden}
+
+.btn{border:0;border-radius:12px;padding:12px 14px;font-weight:700;background:var(--accent);color:#fff;min-height:44px}
+.btn.ghost{background:var(--accent-soft);color:var(--accent)}
+.btn.line{background:transparent;border:1px solid var(--line);color:var(--text);font-weight:600}
+.btn.danger{background:transparent;border:1px solid var(--danger);color:var(--danger);font-weight:600}
+.btn.full{width:100%}
+.btn.sm{padding:6px 10px;min-height:34px;font-size:13px;border-radius:9px}
+
+label.f{display:block;margin:10px 0 0}
+label.f>span{display:block;font-size:13px;color:var(--muted);margin-bottom:4px}
+.in{width:100%;height:44px;border:1px solid var(--line);border-radius:10px;background:var(--bg);padding:0 12px;outline:none}
+.in:focus{border-color:var(--accent)}
+.check{display:flex;gap:10px;align-items:flex-start;margin-top:12px}
+.check input{width:20px;height:20px;margin:1px 0 0;flex:none;accent-color:var(--accent)}
+.colors{display:flex;gap:8px;flex-wrap:wrap}
+.colors button{width:32px;height:32px;border-radius:50%;border:3px solid transparent;background:var(--c)}
+.colors button.on{border-color:var(--text)}
+
+.list>div{padding:10px 0;border-top:1px solid var(--line)}
+.list>div:first-child{border-top:0}
+.kv{display:flex;justify-content:space-between;padding:3px 0;gap:12px}
+.kv b{font-variant-numeric:tabular-nums}
+.warn{background:var(--warn-bg);color:var(--warn);border-radius:12px;padding:10px 12px;font-size:13px;margin:8px 0}
+details summary{cursor:pointer;color:var(--muted);font-size:13px;margin-top:6px}
+.hint{font-size:12px;color:var(--muted);margin:6px 2px 0}
+.empty{text-align:center;padding:28px 10px}
+
+nav.tabs{position:fixed;left:0;right:0;bottom:0;z-index:6;background:var(--card);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom)}
+nav.tabs .in2{max-width:520px;margin:0 auto;display:flex}
+nav.tabs button{flex:1;border:0;background:none;padding:10px 0 12px;color:var(--muted);font-size:12px;font-weight:600;display:flex;flex-direction:column;align-items:center;gap:2px}
+nav.tabs button .i{font-size:20px;line-height:1}
+nav.tabs button.on{color:var(--accent)}
+
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:20;display:flex;align-items:flex-end;justify-content:center}
+.sheet{background:var(--card);width:100%;max-width:520px;border-radius:20px 20px 0 0;padding:16px 16px calc(20px + env(safe-area-inset-bottom));max-height:88vh;overflow:auto}
+.grab{width:40px;height:4px;border-radius:2px;background:var(--line);margin:0 auto 12px}
+
+#toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(84px + env(safe-area-inset-bottom));z-index:30;background:#222;color:#fff;border-radius:12px;padding:10px 14px;
+  font-size:14px;display:none;align-items:center;gap:12px;max-width:calc(100% - 32px)}
+#toast button{background:none;border:0;color:#8fb3ff;font-weight:700;white-space:nowrap;flex:none}
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <button class="iconbtn" data-act="prevMonth" aria-label="이전 달">‹</button>
+    <button class="month" data-act="thisMonth" id="monthLabel"></button>
+    <button class="iconbtn" data-act="nextMonth" aria-label="다음 달">›</button>
+  </header>
+  <main id="view"></main>
+</div>
+<nav class="tabs"><div class="in2">
+  <button data-act="tab" data-tab="cal"><span class="i">📅</span>출근 달력</button>
+  <button data-act="tab" data-tab="pay"><span class="i">💰</span>이번 달 월급</button>
+  <button data-act="tab" data-tab="set"><span class="i">⚙️</span>알바·설정</button>
+</div></nav>
+<div id="sheetRoot"></div>
+<div id="toast"><span id="toastMsg"></span><button id="toastUndo">되돌리기</button></div>
+<input type="file" id="importFile" accept="application/json,.json" hidden>
+
+<script>
+'use strict';
+// ===== 상수 =====
+const KEY = 'albaPay.v1';
+const COLORS = ['#2563eb','#16a34a','#ea580c','#9333ea','#db2777','#0891b2','#ca8a04','#64748b'];
+const TYPES = ['수업 조교','채점 조교','질의응답(클리닉)','상담·행정','데스크','차량 보조','시간 강사','기타'];
+// 연도별 최저시급 (원). 새 해 금액이 정해지면 여기에 추가하면 됩니다.
+const MIN_WAGE = {2024: 9860, 2025: 10030, 2026: 10320};
+const DOW = ['일','월','화','수','목','금','토'];
+
+// ===== 유틸 =====
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const pad = n => String(n).padStart(2, '0');
+const dkey = (y, m, d) => `${y}-${pad(m + 1)}-${pad(d)}`; // m은 0부터
+const won = n => Math.round(n).toLocaleString('ko-KR') + '원';
+const hrs = h => (Math.round(h * 100) / 100).toLocaleString('ko-KR') + '시간';
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+const toMin = t => { const [h, m] = String(t || '0:0').split(':').map(Number); return h * 60 + (m || 0); };
+const trunc10 = n => Math.floor(n / 10) * 10;
+
+function minWage(y) {
+  const ys = Object.keys(MIN_WAGE).map(Number).sort((a, b) => a - b);
+  const pick = ys.filter(v => v <= y).pop() ?? ys[0];
+  return { year: pick, wage: MIN_WAGE[pick] };
+}
+
+// ===== 저장소 (이 기기에만 저장) =====
+function load() {
+  try {
+    const s = JSON.parse(localStorage.getItem(KEY));
+    if (s && Array.isArray(s.jobs) && s.shifts) return s;
+  } catch (e) {}
+  return { ver: 1, jobs: [], shifts: {}, pref: { mode: 'quick', selJob: null } };
+}
+let state = load();
+state.pref = state.pref || { mode: 'quick', selJob: null };
+function save() {
+  try { localStorage.setItem(KEY, JSON.stringify(state)); }
+  catch (e) { toast('저장하지 못했어요. 저장 공간을 확인해 주세요.'); }
+}
+let undoSnap = null;
+function snapshot() { undoSnap = JSON.stringify(state); }
+
+const now = new Date();
+const ui = { y: now.getFullYear(), m: now.getMonth(), tab: 'cal', editShift: null, editJob: null, jobColor: null };
+
+// ===== 계산 =====
+const jobById = id => state.jobs.find(j => j.id === id);
+const shiftsOn = k => state.shifts[k] || [];
+function hoursOf(s) {
+  let st = toMin(s.start), en = toMin(s.end);
+  if (en <= st) en += 1440; // 자정 넘기는 근무
+  return Math.max(0, en - st - (+s.brk || 0)) / 60;
+}
+const wageOf = s => (s.wage ?? jobById(s.jobId)?.wage) || 0;
+
+function deduction(job, gross) {
+  if (job.tax === '33') {
+    const income = trunc10(gross * 0.03);   // 소득세 3%
+    const local = trunc10(income * 0.1);    // 지방소득세 0.3%
+    return income + local;
+  }
+  if (job.tax === 'custom') return Math.floor(gross * (+job.rate || 0) / 100);
+  return 0;
+}
+
+// 한 주(월~일)의 해당 알바 근무시간/금액 합계. sun = 그 주 일요일 Date
+function weekStats(jobId, sun) {
+  let h = 0, pay = 0;
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date(sun.getFullYear(), sun.getMonth(), sun.getDate() - i);
+    for (const s of shiftsOn(dkey(d.getFullYear(), d.getMonth(), d.getDate()))) {
+      if (s.jobId !== jobId) continue;
+      const hh = hoursOf(s); h += hh; pay += hh * wageOf(s);
+    }
+  }
+  return { h, pay };
+}
+
+function calcMonth(y, m) {
+  const last = new Date(y, m + 1, 0).getDate();
+  const out = { rows: [], gross: 0, base: 0, holiday: 0, ded: 0, net: 0, hours: 0, days: 0, warns: [] };
+  const workDays = new Set();
+  const mw = minWage(y);
+  for (const job of state.jobs) {
+    const r = { job, days: 0, hours: 0, base: 0, holiday: 0, weeks: [], ded: 0, gross: 0, net: 0 };
+    for (let d = 1; d <= last; d++) {
+      const k = dkey(y, m, d);
+      const list = shiftsOn(k).filter(s => s.jobId === job.id);
+      if (!list.length) continue;
+      r.days++; workDays.add(k);
+      for (const s of list) { const h = hoursOf(s); r.hours += h; r.base += h * wageOf(s); }
+    }
+    r.base = Math.round(r.base);
+    // 주휴수당: 월~일 한 주 기준, 그 주의 일요일이 이번 달에 있으면 이번 달에 포함
+    let over15 = false;
+    for (let d = 1; d <= last; d++) {
+      const sun = new Date(y, m, d);
+      if (sun.getDay() !== 0) continue;
+      const w = weekStats(job.id, sun);
+      if (w.h <= 0) continue;
+      let p = 0;
+      if (w.h >= 15) {
+        over15 = true;
+        if (job.weekly) p = Math.round(Math.min(w.h, 40) / 40 * 8 * (w.pay / w.h));
+      }
+      r.holiday += p;
+      r.weeks.push({ from: new Date(y, m, d - 6), to: sun, h: w.h, p });
+    }
+    r.gross = r.base + r.holiday;
+    r.ded = deduction(job, r.gross);
+    r.net = r.gross - r.ded;
+    if (r.hours > 0 || r.holiday > 0) {
+      out.rows.push(r);
+      out.base += r.base; out.holiday += r.holiday; out.gross += r.gross; out.ded += r.ded; out.net += r.net; out.hours += r.hours;
+      if (job.wage < mw.wage)
+        out.warns.push(`${job.academy} · ${job.type}: 시급 ${won(job.wage)}이 ${mw.year}년 최저시급(${won(mw.wage)})보다 낮아요.`);
+      if (over15 && !job.weekly)
+        out.warns.push(`${job.academy} · ${job.type}: 주 15시간 이상 일한 주가 있어요. 주휴수당 대상일 수 있으니 알바 설정에서 '주휴수당 계산'을 켜 보세요.`);
+    }
+  }
+  out.days = workDays.size;
+  return out;
+}
+
+// ===== 화면 =====
+function render() {
+  $('#monthLabel').textContent = `${ui.y}년 ${ui.m + 1}월`;
+  document.querySelectorAll('nav.tabs button').forEach(b => b.classList.toggle('on', b.dataset.tab === ui.tab));
+  $('#view').innerHTML = ui.tab === 'cal' ? viewCal() : ui.tab === 'pay' ? viewPay() : viewSet();
+}
+
+function jobLabel(j) { return `${esc(j.academy)} · ${esc(j.type)}`; }
+
+function viewCal() {
+  const { y, m } = ui;
+  const c = calcMonth(y, m);
+  if (!state.jobs.length) {
+    return `<div class="card empty">
+      <div style="font-size:40px">🧾</div>
+      <h2 style="margin-top:8px">먼저 알바를 등록해 주세요</h2>
+      <p class="muted small">학원 이름, 알바 유형, 시급, 기본 근무시간을 입력하면<br>달력에서 날짜만 눌러 출근을 기록할 수 있어요.</p>
+      <button class="btn" data-act="newJob">+ 알바 등록하기</button>
+    </div>${privacyNote()}`;
+  }
+  if (!jobById(state.pref.selJob)) state.pref.selJob = state.jobs[0].id;
+  const sel = state.pref.selJob, mode = state.pref.mode;
+  const first = new Date(y, m, 1).getDay(), last = new Date(y, m + 1, 0).getDate();
+  const t = new Date(), todayK = dkey(t.getFullYear(), t.getMonth(), t.getDate());
+  let cells = DOW.map((d, i) => `<div class="dow ${i === 0 ? 'sun' : i === 6 ? 'sat' : ''}">${d}</div>`).join('');
+  for (let i = 0; i < first; i++) cells += `<div class="day blank"></div>`;
+  for (let d = 1; d <= last; d++) {
+    const k = dkey(y, m, d), wd = (first + d - 1) % 7, list = shiftsOn(k);
+    const byJob = {};
+    for (const s of list) byJob[s.jobId] = (byJob[s.jobId] || 0) + hoursOf(s);
+    const bars = Object.entries(byJob).map(([id, h]) => {
+      const j = jobById(id); if (!j) return '';
+      return `<div class="bar" style="--c:${j.color}">${Math.round(h * 10) / 10}h ${esc(j.academy)}</div>`;
+    }).join('');
+    cells += `<button class="day ${wd === 0 ? 'sun' : wd === 6 ? 'sat' : ''} ${k === todayK ? 'today' : ''} ${list.length ? 'has' : ''}"
+      data-act="day" data-k="${k}" aria-label="${m + 1}월 ${d}일"><span class="n">${d}</span>${bars}</button>`;
+  }
+  const chips = state.jobs.map(j => `<button class="chip ${j.id === sel ? 'on' : ''}" style="--c:${j.color}" data-act="selJob" data-id="${j.id}">
+    <span class="dot"></span>${jobLabel(j)}</button>`).join('') + `<button class="chip" data-act="newJob">+ 알바 추가</button>`;
+  return `
+  <div class="card" style="padding:12px 14px">
+    <div class="row between">
+      <div><div class="muted tiny">${m + 1}월 예상 실수령액</div><div class="big num">${won(c.net)}</div></div>
+      <div style="text-align:right" class="small muted num">세전 ${won(c.gross)}<br>${hrs(c.hours)} · ${c.days}일</div>
+    </div>
+  </div>
+  <div class="seg" role="tablist">
+    <button class="${mode === 'quick' ? 'on' : ''}" data-act="mode" data-mode="quick">⚡ 빠른 체크</button>
+    <button class="${mode === 'detail' ? 'on' : ''}" data-act="mode" data-mode="detail">✏️ 시간 직접 입력</button>
+  </div>
+  <p class="hint">${mode === 'quick'
+    ? '아래에서 알바를 고른 뒤 날짜를 누르면 기본 근무시간으로 출근이 기록돼요. 한 번 더 누르면 지워져요.'
+    : '날짜를 누르면 그날의 출근·퇴근 시간과 휴게시간을 직접 입력하거나 고칠 수 있어요.'}</p>
+  ${mode === 'quick' ? `<div class="chips" style="margin-top:8px">${chips}</div>` : ''}
+  <div class="grid" style="margin-top:8px">${cells}</div>
+  ${c.warns.length ? c.warns.map(w => `<div class="warn">⚠️ ${esc(w)}</div>`).join('') : ''}`;
+}
+
+function viewPay() {
+  const { y, m } = ui;
+  const c = calcMonth(y, m);
+  if (!c.rows.length) {
+    return `<div class="card empty"><div style="font-size:40px">💤</div>
+      <h2 style="margin-top:8px">${m + 1}월 근무 기록이 없어요</h2>
+      <p class="muted small">출근 달력에서 근무한 날짜를 눌러 기록해 보세요.</p>
+      <button class="btn" data-act="tab" data-tab="cal">출근 달력으로</button></div>`;
+  }
+  // 학원별로 묶기
+  const groups = {};
+  for (const r of c.rows) (groups[r.job.academy] = groups[r.job.academy] || []).push(r);
+  const fd = d => `${d.getMonth() + 1}/${d.getDate()}`;
+  const acad = Object.entries(groups).map(([name, rows]) => {
+    const sum = rows.reduce((a, r) => ({ gross: a.gross + r.gross, net: a.net + r.net }), { gross: 0, net: 0 });
+    const items = rows.map(r => {
+      const j = r.job;
+      const taxLabel = j.tax === '33' ? '3.3% 원천징수' : j.tax === 'custom' ? `공제 ${j.rate}%` : '공제 없음';
+      return `<div>
+        <div class="row" style="margin-bottom:4px"><span class="dot" style="--c:${j.color}"></span><b>${esc(j.type)}</b>
+          <span class="muted small">시급 ${won(j.wage)}</span></div>
+        <div class="kv small"><span class="muted">근무</span><b>${r.days}일 · ${hrs(r.hours)}</b></div>
+        <div class="kv small"><span class="muted">기본급</span><b>${won(r.base)}</b></div>
+        ${j.weekly ? `<div class="kv small"><span class="muted">주휴수당</span><b>${won(r.holiday)}</b></div>` : ''}
+        <div class="kv small"><span class="muted">${taxLabel}</span><b>${r.ded ? '−' + won(r.ded) : '0원'}</b></div>
+        <div class="kv"><span>실수령</span><b>${won(r.net)}</b></div>
+        ${r.weeks.length ? `<details><summary>주별 근무시간${j.weekly ? ' · 주휴수당 내역' : ''}</summary>
+          ${r.weeks.map(w => `<div class="kv tiny"><span class="muted">${fd(w.from)}~${fd(w.to)}</span>
+            <span class="num">${hrs(w.h)}${j.weekly ? ` · ${w.h >= 15 ? won(w.p) : '15시간 미만'}` : ''}</span></div>`).join('')}
+        </details>` : ''}
+      </div>`;
+    }).join('');
+    return `<div class="card">
+      <div class="row between"><h3>🏫 ${esc(name)}</h3><span class="small num"><b>${won(sum.net)}</b></span></div>
+      <div class="list" style="margin-top:8px">${items}</div></div>`;
+  }).join('');
+  return `
+  <div class="card">
+    <div class="muted small">${y}년 ${m + 1}월 예상 실수령액</div>
+    <div class="big num" style="margin:2px 0 10px">${won(c.net)}</div>
+    <div class="kv small"><span class="muted">총 근무</span><b>${c.days}일 · ${hrs(c.hours)}</b></div>
+    <div class="kv small"><span class="muted">기본급 합계</span><b>${won(c.base)}</b></div>
+    <div class="kv small"><span class="muted">주휴수당 합계</span><b>${won(c.holiday)}</b></div>
+    <div class="kv small"><span class="muted">세전 합계</span><b>${won(c.gross)}</b></div>
+    <div class="kv small"><span class="muted">공제 합계</span><b>${c.ded ? '−' + won(c.ded) : '0원'}</b></div>
+  </div>
+  ${c.warns.map(w => `<div class="warn">⚠️ ${esc(w)}</div>`).join('')}
+  ${acad}
+  <p class="hint">· 주휴수당은 월~일 한 주에 15시간 이상 일한 경우, (주 근무시간 ÷ 40) × 8시간 × 시급으로 계산해요(최대 8시간분). 그 주의 일요일이 속한 달에 포함돼요.<br>
+  · 3.3%는 소득세 3%와 지방소득세 0.3%를 각각 10원 미만 버림으로 계산해요.<br>
+  · 실제 지급액은 학원의 정산 방식에 따라 다를 수 있어요.</p>`;
+}
+
+function viewSet() {
+  const mw = minWage(ui.y);
+  const jobs = state.jobs.length ? state.jobs.map(j => `<div class="row">
+      <span class="dot" style="--c:${j.color}"></span>
+      <div class="grow"><b>${jobLabel(j)}</b>
+        <div class="muted small num">시급 ${won(j.wage)} · ${esc(j.start)}~${esc(j.end)}${+j.brk ? ` (휴게 ${j.brk}분)` : ''}
+        · ${j.weekly ? '주휴 O' : '주휴 X'} · ${j.tax === '33' ? '3.3%' : j.tax === 'custom' ? j.rate + '%' : '공제 없음'}</div>
+        ${j.wage < mw.wage ? `<div class="tiny" style="color:var(--warn)">⚠️ ${mw.year}년 최저시급(${won(mw.wage)}) 미만</div>` : ''}
+      </div>
+      <button class="btn line sm" data-act="editJob" data-id="${j.id}">수정</button>
+    </div>`).join('') : `<div class="muted small">등록된 알바가 없어요.</div>`;
+  return `
+  <div class="card">
+    <div class="row between"><h2 style="margin:0">내 알바</h2><button class="btn ghost sm" data-act="newJob">+ 추가</button></div>
+    <div class="list" style="margin-top:8px">${jobs}</div>
+  </div>
+  <div class="card">
+    <h2>백업 · 복원</h2>
+    <p class="muted small" style="margin-top:0">기록은 이 기기의 브라우저에만 저장돼요. 폰을 바꾸거나 브라우저 데이터를 지우기 전에 꼭 백업해 두세요.</p>
+    <div class="row wrap">
+      <button class="btn ghost sm" data-act="exportFile">📤 백업 파일 저장</button>
+      <button class="btn ghost sm" data-act="exportCopy">📋 백업 코드 복사</button>
+      <button class="btn line sm" data-act="importFile">📥 파일에서 복원</button>
+      <button class="btn line sm" data-act="importPaste">📥 코드로 복원</button>
+    </div>
+  </div>
+  <div class="card">
+    <h2>데이터 삭제</h2>
+    <button class="btn danger sm" data-act="wipe">이 기기의 모든 기록 삭제</button>
+  </div>
+  ${privacyNote()}`;
+}
+
+function privacyNote() {
+  return `<p class="hint" style="text-align:center;margin:16px 0">🔒 입력한 정보는 서버로 전송되지 않고 이 기기에만 저장돼요.<br>같은 앱을 쓰는 다른 사람은 내 기록을 볼 수 없어요.</p>`;
+}
+
+// ===== 바텀시트 =====
+function openSheet(html) {
+  $('#sheetRoot').innerHTML = `<div class="overlay" data-act="closeOverlay"><div class="sheet" role="dialog" aria-modal="true"><div class="grab"></div>${html}</div></div>`;
+}
+function closeSheet() { $('#sheetRoot').innerHTML = ''; ui.editShift = null; ui.editJob = null; }
+
+function dayLabel(k) {
+  const [y, m, d] = k.split('-').map(Number);
+  return `${m}월 ${d}일 (${DOW[new Date(y, m - 1, d).getDay()]})`;
+}
+
+function sheetDay(k) {
+  const list = shiftsOn(k);
+  const ed = ui.editShift ? list.find(s => s.id === ui.editShift) : null;
+  const j0 = ed ? jobById(ed.jobId) : (jobById(state.pref.selJob) || state.jobs[0]);
+  const v = ed || { jobId: j0.id, start: j0.start, end: j0.end, brk: j0.brk };
+  const items = list.length ? list.map(s => {
+    const j = jobById(s.jobId); if (!j) return '';
+    const h = hoursOf(s);
+    return `<div class="row">
+      <span class="dot" style="--c:${j.color}"></span>
+      <div class="grow"><b>${jobLabel(j)}</b>
+        <div class="muted small num">${esc(s.start)}~${esc(s.end)}${+s.brk ? ` · 휴게 ${s.brk}분` : ''} · ${hrs(h)} · ${won(h * wageOf(s))}</div></div>
+      <button class="btn line sm" data-act="editShift" data-k="${k}" data-id="${s.id}">수정</button>
+      <button class="btn danger sm" data-act="delShift" data-k="${k}" data-id="${s.id}">삭제</button>
+    </div>`;
+  }).join('') : `<div class="muted small">아직 기록이 없어요.</div>`;
+  const opts = state.jobs.map(j => `<option value="${j.id}" ${j.id === v.jobId ? 'selected' : ''}>${jobLabel(j)}</option>`).join('');
+  openSheet(`
+    <div class="row between"><h3>${dayLabel(k)}</h3><button class="btn line sm" data-act="close">닫기</button></div>
+    <div class="list" style="margin-top:10px">${items}</div>
+    <div class="card" style="margin-bottom:0;background:var(--bg)">
+      <b>${ed ? '근무 수정' : '근무 추가'}</b>
+      <label class="f"><span>알바</span><select class="in" id="fJob">${opts}</select></label>
+      <div class="row">
+        <label class="f grow"><span>출근</span><input class="in" type="time" id="fStart" value="${esc(v.start)}"></label>
+        <label class="f grow"><span>퇴근</span><input class="in" type="time" id="fEnd" value="${esc(v.end)}"></label>
+      </div>
+      <label class="f"><span>휴게시간 (분)</span><input class="in" type="number" inputmode="numeric" min="0" step="5" id="fBrk" value="${+v.brk || 0}"></label>
+      <p class="hint">퇴근 시간이 출근보다 빠르면 다음 날 퇴근으로 계산해요.</p>
+      <div class="row" style="margin-top:10px">
+        ${ed ? `<button class="btn line" data-act="cancelEdit" data-k="${k}">취소</button>` : ''}
+        <button class="btn grow" data-act="saveShift" data-k="${k}">${ed ? '수정 저장' : '추가'}</button>
+      </div>
+    </div>`);
+}
+
+function sheetJob(id) {
+  const j = id ? jobById(id) : null;
+  ui.editJob = id || null;
+  const v = j || { academy: '', type: '', wage: minWage(ui.y).wage, start: '14:00', end: '18:00', brk: 0, weekly: false, tax: 'none', rate: 0,
+    color: COLORS[state.jobs.length % COLORS.length] };
+  ui.jobColor = v.color;
+  const acads = [...new Set(state.jobs.map(x => x.academy))];
+  openSheet(`
+    <div class="row between"><h3>${j ? '알바 수정' : '알바 등록'}</h3><button class="btn line sm" data-act="close">닫기</button></div>
+    <label class="f"><span>학원 이름</span><input class="in" id="jAcad" list="acadList" placeholder="예: 해법수학 ○○점" value="${esc(v.academy)}"></label>
+    <datalist id="acadList">${acads.map(a => `<option value="${esc(a)}">`).join('')}</datalist>
+    <label class="f"><span>알바 유형</span><input class="in" id="jType" list="typeList" placeholder="골라도 되고 직접 써도 돼요" value="${esc(v.type)}"></label>
+    <datalist id="typeList">${TYPES.map(t => `<option value="${t}">`).join('')}</datalist>
+    <label class="f"><span>시급 (원)</span><input class="in" id="jWage" type="number" inputmode="numeric" min="0" step="10" value="${+v.wage || ''}"></label>
+    <p class="hint">${minWage(ui.y).year}년 최저시급: ${won(minWage(ui.y).wage)}</p>
+    <div class="row">
+      <label class="f grow"><span>기본 출근</span><input class="in" type="time" id="jStart" value="${esc(v.start)}"></label>
+      <label class="f grow"><span>기본 퇴근</span><input class="in" type="time" id="jEnd" value="${esc(v.end)}"></label>
+    </div>
+    <label class="f"><span>기본 휴게시간 (분)</span><input class="in" id="jBrk" type="number" inputmode="numeric" min="0" step="5" value="${+v.brk || 0}"></label>
+    <label class="check"><input type="checkbox" id="jWeekly" ${v.weekly ? 'checked' : ''}>
+      <span><b>주휴수당 계산</b><br><span class="muted small">한 주(월~일)에 15시간 이상 일하면 주휴수당을 더해요.</span></span></label>
+    <label class="f"><span>공제</span>
+      <select class="in" id="jTax">
+        <option value="none" ${v.tax === 'none' ? 'selected' : ''}>공제 없음</option>
+        <option value="33" ${v.tax === '33' ? 'selected' : ''}>3.3% 원천징수 (프리랜서)</option>
+        <option value="custom" ${v.tax === 'custom' ? 'selected' : ''}>공제율 직접 입력 (4대보험 등)</option>
+      </select></label>
+    <label class="f" id="jRateWrap" style="${v.tax === 'custom' ? '' : 'display:none'}"><span>공제율 (%)</span>
+      <input class="in" id="jRate" type="number" inputmode="decimal" min="0" max="100" step="0.01" value="${+v.rate || ''}"></label>
+    <label class="f"><span>색상</span></label>
+    <div class="colors" id="jColors">${COLORS.map(c => `<button type="button" style="--c:${c}" class="${c === v.color ? 'on' : ''}" data-act="pickColor" data-c="${c}" aria-label="색상"></button>`).join('')}</div>
+    <button class="btn full" style="margin-top:16px" data-act="saveJob">저장</button>
+    ${j ? `<button class="btn danger full" style="margin-top:8px" data-act="delJob" data-id="${j.id}">이 알바 삭제</button>` : ''}`);
+}
+
+// ===== 토스트 =====
+let toastTimer;
+function toast(msg, undo) {
+  $('#toastMsg').textContent = msg;
+  $('#toastUndo').style.display = undo ? '' : 'none';
+  $('#toast').style.display = 'flex';
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => { $('#toast').style.display = 'none'; }, 3500);
+}
+$('#toastUndo').onclick = () => {
+  if (!undoSnap) return;
+  state = JSON.parse(undoSnap); undoSnap = null; save(); render();
+  $('#toast').style.display = 'none';
+};
+
+// ===== 동작 =====
+function setShifts(k, list) { if (list.length) state.shifts[k] = list; else delete state.shifts[k]; }
+
+const ACT = {
+  tab: t => { ui.tab = t.dataset.tab; render(); scrollTo(0, 0); },
+  prevMonth: () => { if (--ui.m < 0) { ui.m = 11; ui.y--; } render(); },
+  nextMonth: () => { if (++ui.m > 11) { ui.m = 0; ui.y++; } render(); },
+  thisMonth: () => { const d = new Date(); ui.y = d.getFullYear(); ui.m = d.getMonth(); render(); },
+  mode: t => { state.pref.mode = t.dataset.mode; save(); render(); },
+  selJob: t => { state.pref.selJob = t.dataset.id; save(); render(); },
+  newJob: () => sheetJob(null),
+  editJob: t => sheetJob(t.dataset.id),
+  close: closeSheet,
+  closeOverlay: (t, e) => { if (e.target === t) closeSheet(); },
+  pickColor: t => {
+    ui.jobColor = t.dataset.c;
+    document.querySelectorAll('#jColors button').forEach(b => b.classList.toggle('on', b === t));
+  },
+  day: t => {
+    const k = t.dataset.k;
+    if (state.pref.mode === 'detail') { ui.editShift = null; sheetDay(k); return; }
+    const j = jobById(state.pref.selJob); if (!j) return;
+    const list = shiftsOn(k);
+    snapshot();
+    if (list.some(s => s.jobId === j.id)) {
+      setShifts(k, list.filter(s => s.jobId !== j.id));
+      toast(`${dayLabel(k)} ${j.academy} 기록을 지웠어요`, true);
+    } else {
+      setShifts(k, [...list, { id: uid(), jobId: j.id, start: j.start, end: j.end, brk: +j.brk || 0 }]);
+      toast(`${dayLabel(k)} 출근 · ${hrs(hoursOf(j))}`, true);
+    }
+    save(); render();
+  },
+  editShift: t => { ui.editShift = t.dataset.id; sheetDay(t.dataset.k); },
+  cancelEdit: t => { ui.editShift = null; sheetDay(t.dataset.k); },
+  delShift: t => {
+    const k = t.dataset.k; snapshot();
+    setShifts(k, shiftsOn(k).filter(s => s.id !== t.dataset.id));
+    save(); render(); ui.editShift = null; sheetDay(k); toast('삭제했어요', true);
+  },
+  saveShift: t => {
+    const k = t.dataset.k;
+    const s = { jobId: $('#fJob').value, start: $('#fStart').value, end: $('#fEnd').value, brk: Math.max(0, +$('#fBrk').value || 0) };
+    if (!s.start || !s.end) return toast('출근·퇴근 시간을 입력해 주세요');
+    if (hoursOf(s) <= 0) return toast('근무시간이 0이에요. 시간을 확인해 주세요');
+    snapshot();
+    const list = shiftsOn(k);
+    if (ui.editShift) {
+      setShifts(k, list.map(x => x.id === ui.editShift ? { ...x, ...s, wage: x.jobId === s.jobId ? x.wage : undefined } : x));
+    } else {
+      setShifts(k, [...list, { id: uid(), ...s }]);
+    }
+    save(); render(); ui.editShift = null; sheetDay(k); toast('저장했어요');
+  },
+  saveJob: () => {
+    const j = {
+      academy: $('#jAcad').value.trim(), type: $('#jType').value.trim() || '알바',
+      wage: Math.round(+$('#jWage').value || 0), start: $('#jStart').value || '09:00', end: $('#jEnd').value || '18:00',
+      brk: Math.max(0, +$('#jBrk').value || 0), weekly: $('#jWeekly').checked, tax: $('#jTax').value,
+      rate: Math.min(100, Math.max(0, +$('#jRate').value || 0)), color: ui.jobColor,
+    };
+    if (!j.academy) return toast('학원 이름을 입력해 주세요');
+    if (!(j.wage > 0)) return toast('시급을 입력해 주세요');
+    if (hoursOf(j) <= 0) return toast('기본 근무시간을 확인해 주세요');
+    if (ui.editJob) {
+      const old = jobById(ui.editJob);
+      if (old.wage !== j.wage) {
+        const keepPast = confirm(`시급이 ${won(old.wage)} → ${won(j.wage)}로 바뀌어요.\n\n지난달까지의 기록은 기존 시급을 유지할까요?\n[확인] 지난달까지는 기존 시급 유지\n[취소] 모든 기록에 새 시급 적용`);
+        const cut = dkey(ui.y, ui.m, 1);
+        for (const [k, list] of Object.entries(state.shifts)) for (const s of list) {
+          if (s.jobId !== old.id) continue;
+          if (keepPast && k < cut) { if (s.wage == null) s.wage = old.wage; }
+          else delete s.wage;
+        }
+      }
+      Object.assign(old, j);
+    } else {
+      const nj = { id: uid(), ...j };
+      state.jobs.push(nj); state.pref.selJob = nj.id;
+    }
+    save(); closeSheet(); render(); toast('알바 정보를 저장했어요');
+  },
+  delJob: t => {
+    const j = jobById(t.dataset.id);
+    if (!confirm(`'${j.academy} · ${j.type}' 알바와 모든 근무 기록을 삭제할까요?`)) return;
+    snapshot();
+    state.jobs = state.jobs.filter(x => x.id !== j.id);
+    for (const k of Object.keys(state.shifts)) setShifts(k, state.shifts[k].filter(s => s.jobId !== j.id));
+    save(); closeSheet(); render(); toast('삭제했어요', true);
+  },
+  exportFile: () => {
+    const blob = new Blob([JSON.stringify(state, null, 1)], { type: 'application/json' });
+    const a = document.createElement('a'); const d = new Date();
+    a.href = URL.createObjectURL(blob);
+    a.download = `알바월급-백업-${d.getFullYear()}${pad(d.getMonth() + 1)}${pad(d.getDate())}.json`;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+    toast('백업 파일을 저장했어요');
+  },
+  exportCopy: async () => {
+    const txt = JSON.stringify(state);
+    try { await navigator.clipboard.writeText(txt); toast('백업 코드를 복사했어요. 메모장이나 나에게 보내기에 붙여넣어 보관하세요'); }
+    catch (e) {
+      openSheet(`<h3>백업 코드</h3><p class="muted small">아래 글자를 모두 복사해서 보관하세요.</p>
+        <textarea class="in" style="height:200px;padding:10px" readonly>${esc(txt)}</textarea>
+        <button class="btn full" style="margin-top:10px" data-act="close">닫기</button>`);
+    }
+  },
+  importFile: () => $('#importFile').click(),
+  importPaste: () => openSheet(`<h3>코드로 복원</h3><p class="muted small">보관해 둔 백업 코드를 붙여넣으세요. 지금 기록은 백업 내용으로 바뀌어요.</p>
+    <textarea class="in" id="pasteBox" style="height:180px;padding:10px"></textarea>
+    <div class="row" style="margin-top:10px"><button class="btn line" data-act="close">취소</button>
+    <button class="btn grow" data-act="doPaste">복원</button></div>`),
+  doPaste: () => restore($('#pasteBox').value),
+  wipe: () => {
+    if (!confirm('이 기기에 저장된 모든 알바와 근무 기록을 삭제할까요?\n삭제 전에 백업을 권장해요.')) return;
+    snapshot();
+    state = { ver: 1, jobs: [], shifts: {}, pref: { mode: 'quick', selJob: null } };
+    save(); render(); toast('모두 삭제했어요', true);
+  },
+};
+
+function restore(text) {
+  try {
+    const s = JSON.parse(text);
+    if (!s || !Array.isArray(s.jobs) || typeof s.shifts !== 'object') throw 0;
+    if (!confirm(`알바 ${s.jobs.length}개, 근무일 ${Object.keys(s.shifts).length}일 기록으로 복원할까요?\n지금 기록은 바뀌어요.`)) return;
+    snapshot();
+    state = s; state.pref = state.pref || { mode: 'quick', selJob: null };
+    save(); closeSheet(); render(); toast('복원했어요', true);
+  } catch (e) { toast('백업 내용을 읽을 수 없어요. 파일이나 코드를 확인해 주세요'); }
+}
+
+document.addEventListener('click', e => {
+  const t = e.target.closest('[data-act]');
+  if (t && ACT[t.dataset.act]) ACT[t.dataset.act](t, e);
+});
+document.addEventListener('change', e => {
+  if (e.target.id === 'jTax') $('#jRateWrap').style.display = e.target.value === 'custom' ? '' : 'none';
+  if (e.target.id === 'fJob' && !ui.editShift) {
+    const j = jobById(e.target.value);
+    if (j) { $('#fStart').value = j.start; $('#fEnd').value = j.end; $('#fBrk').value = +j.brk || 0; }
+  }
+  if (e.target.id === 'importFile') {
+    const f = e.target.files[0]; if (!f) return;
+    f.text().then(restore); e.target.value = '';
+  }
+});
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeSheet(); });
+
+render();
+// 브라우저가 저장공간을 임의로 지우지 않도록 요청
+if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(() => {});
+if ('serviceWorker' in navigator && location.protocol.startsWith('http')) navigator.serviceWorker.register('sw.js').catch(() => {});
+</script>
+</body>
+</html>
