@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#FAF7F0" id="metaTheme">
+<meta name="theme-color" content="#FFF8E0" id="metaTheme">
 <script>
 // 화면이 깜빡이지 않도록 저장된 테마를 먼저 적용
 try { const t = (JSON.parse(localStorage.getItem('albaPay.v1')) || {}).pref?.theme; if (t === 'light' || t === 'dark') document.documentElement.dataset.theme = t; } catch (e) {}
@@ -16,6 +16,7 @@ try { const t = (JSON.parse(localStorage.getItem('albaPay.v1')) || {}).pref?.the
 <link rel="apple-touch-icon" href="icon-180.png">
 <link rel="icon" href="icon-192.png">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Jua&display=swap">
 <title>알바 월급 계산기</title>
 <style>
 :root{
@@ -296,6 +297,61 @@ nav.tabs .brand{display:none}
 #toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(96px + env(safe-area-inset-bottom));z-index:30;background:#1F1C16;color:#fff;border-radius:14px;padding:12px 16px;
   font-size:14px;display:none;align-items:center;gap:14px;max-width:calc(100% - 32px);box-shadow:0 10px 30px -10px rgba(0,0,0,.4)}
 #toast button{background:none;border:0;color:#FFD043;font-weight:700;white-space:nowrap;flex:none;padding:0}
+
+/* 고라파덕 테마: 노란 몸 + 크림색 부리 + 물(파랑) 포인트 */
+:root{
+  --bg:#FFF8E0;--surface:#FFFFFF;--surface-2:#FFF1C2;--text:#2A2311;--muted:#8A7B55;--line:#F2E2AE;
+  --accent:#FFD43B;--accent-strong:#F5B800;--accent-ink:#2A2000;--accent-soft:#FFEFB0;--accent-text:#8F6A00;
+  --water:#3FA9E0;--water-2:#86D0F3;--water-soft:#DDF1FC;--water-text:#1F78AD;
+  --sat:#2389CC;--bubble:rgba(63,169,224,.10);--wave-a:#86D0F3;--wave-b:#3FA9E0;
+  --shadow:0 1px 2px rgba(120,90,0,.05),0 12px 28px -14px rgba(120,90,0,.24);
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0C1A25;--surface:#12263A;--surface-2:#1A3249;--text:#F5F0DC;--muted:#93A7B8;--line:#24425C;
+  --accent:#FFD43B;--accent-strong:#FFC629;--accent-ink:#2A2000;--accent-soft:#3B3818;--accent-text:#FFDB5C;
+  --water:#5BC0F0;--water-2:#2E7FB0;--water-soft:#173C57;--water-text:#8ED6F8;
+  --sat:#7FC8F5;--bubble:rgba(91,192,240,.08);--wave-a:#2E7FB0;--wave-b:#1C5E8C;
+}}
+:root[data-theme="dark"]{
+  --bg:#0C1A25;--surface:#12263A;--surface-2:#1A3249;--text:#F5F0DC;--muted:#93A7B8;--line:#24425C;
+  --accent:#FFD43B;--accent-strong:#FFC629;--accent-ink:#2A2000;--accent-soft:#3B3818;--accent-text:#FFDB5C;
+  --water:#5BC0F0;--water-2:#2E7FB0;--water-soft:#173C57;--water-text:#8ED6F8;
+  --sat:#7FC8F5;--bubble:rgba(91,192,240,.08);--wave-a:#2E7FB0;--wave-b:#1C5E8C;
+}
+/* 배경: 연못 물방울 */
+body{background-color:var(--bg);
+  background-image:radial-gradient(circle at 20% 30%,var(--bubble) 0 9px,transparent 10px),
+    radial-gradient(circle at 75% 65%,var(--bubble) 0 5px,transparent 6px),
+    radial-gradient(circle at 45% 85%,var(--bubble) 0 3px,transparent 4px);
+  background-size:190px 190px,250px 250px,140px 140px;background-attachment:fixed}
+.mtitle .m,.hero-amt,.trek-count,h2,nav.tabs .brand b{font-family:"Jua","Pretendard Variable",sans-serif;font-weight:400;letter-spacing:-.01em}
+
+/* 월급 카드: 노란 고라파덕 + 아래 물결 */
+.hero{background:linear-gradient(165deg,#FFE680 0%,#FFD43B 50%,#FFC21A 100%);color:#2A2000;padding-bottom:34px}
+.hero::after{right:10px;top:8px;width:70px;height:80px;border-radius:0;background:url(duck.png) center/contain no-repeat;transform:rotate(10deg);
+  filter:drop-shadow(0 3px 0 rgba(140,100,0,.18))}
+.hero::before{content:"";position:absolute;left:0;right:0;bottom:0;height:24px;
+  background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 80 24' preserveAspectRatio='none'%3E%3Cpath d='M0 8 Q10 0 20 8 T40 8 T60 8 T80 8 V24 H0Z' fill='%2386D0F3'/%3E%3Cpath d='M0 14 Q10 7 20 14 T40 14 T60 14 T80 14 V24 H0Z' fill='%233FA9E0'/%3E%3C/svg%3E") repeat-x 0 0/80px 24px;
+  animation:flow 6s linear infinite}
+@keyframes flow{to{background-position:80px 0}}
+.hero-stats{background:rgba(255,255,255,.6);z-index:1}
+.hero-label,.hero-amt{max-width:calc(100% - 76px)}
+
+/* 진행도 길: 물길 위를 걷는 고라파덕 */
+.trek .track{background:var(--water-soft);height:14px}
+.trek .fill{background:repeating-linear-gradient(-45deg,var(--water) 0 8px,var(--water-2) 8px 16px)}
+.mark.got{box-shadow:0 0 0 2px var(--water);background:var(--water-soft)}
+
+/* 토요일·탭·토스트 */
+nav.tabs button.on .pillic{box-shadow:inset 0 -3px 0 rgba(140,100,0,.18)}
+@media (min-width:960px){nav.tabs button.on{background:var(--accent-soft)} nav.tabs{background:var(--surface)}}
+.btn{box-shadow:inset 0 -3px 0 rgba(140,100,0,.18)}
+.btn.soft,.btn.line,.btn.danger{box-shadow:none}
+.tag{background:var(--water-soft);color:var(--water-text)}
+#toast{background:#123A57}
+#toast button{color:#FFD43B}
+.overlay{background:rgba(8,30,48,.45)}
+@media (prefers-reduced-motion:reduce){.hero::before{animation:none}}
 </style>
 </head>
 <body>
@@ -505,7 +561,7 @@ const isDark = () => { const t = state.pref.theme || 'system'; return t === 'dar
 function applyTheme() {
   const t = state.pref.theme || 'system';
   if (t === 'system') delete document.documentElement.dataset.theme; else document.documentElement.dataset.theme = t;
-  $('#metaTheme').content = isDark() ? '#121110' : '#FAF7F0';
+  $('#metaTheme').content = isDark() ? '#0C1A25' : '#FFF8E0';
   $('#themeBtn').innerHTML = ic(isDark() ? 'sun' : 'moon');
 }
 darkMq.addEventListener?.('change', () => { applyTheme(); if (ui.tab === 'set') render(); });
