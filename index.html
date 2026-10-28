@@ -395,7 +395,8 @@ nav.tabs button.on .pillic{box-shadow:inset 0 -3px 0 rgba(140,100,0,.18)}
 // ===== 상수 =====
 const KEY = 'albaPay.v1';
 const COLORS = ['#F59E0B','#EF6F53','#14B8A6','#6366F1','#22C55E','#EC4899','#0EA5E9','#78716C'];
-const TYPES = ['수업 조교','채점 조교','질의응답(클리닉)','상담·행정','데스크','차량 보조','시간 강사','기타'];
+const RATIO = '강사(비율)'; // 학생 수 × 학생 1명당 시급으로 계산하는 유형
+const TYPES = ['수업 조교','채점 조교','질의응답(클리닉)','상담·행정','데스크','차량 보조','시간 강사',RATIO,'기타'];
 // 연도별 최저시급 (원). 새 해 금액이 정해지면 여기에 추가하면 됩니다.
 const MIN_WAGE = {2024: 9860, 2025: 10030, 2026: 10320};
 const DOW = ['일','월','화','수','목','금','토'];
@@ -475,7 +476,16 @@ function hoursOf(s) {
   if (en <= st) en += 1440; // 자정 넘기는 근무
   return Math.max(0, en - st - (+s.brk || 0)) / 60;
 }
-const wageOf = s => (s.wage ?? jobById(s.jobId)?.wage) || 0;
+const isRatio = j => !!j && j.type === RATIO;
+// 강사(비율)는 그날 학생 수(없으면 기본 학생 수)를 곱해요
+const studentsOf = s => s.students ?? jobById(s.jobId)?.students ?? 1;
+const wageOf = s => {
+  const j = jobById(s.jobId), w = (s.wage ?? j?.wage) || 0;
+  return isRatio(j) ? w * studentsOf(s) : w;
+};
+const stuText = s => isRatio(jobById(s.jobId)) ? ` · 학생 ${studentsOf(s)}명` : '';
+// 새 근무 기록: 알바의 기본 시간과 기본 학생 수로 만들어요
+const newShift = j => ({ id: uid(), jobId: j.id, start: j.start, end: j.end, brk: +j.brk || 0, ...(isRatio(j) ? { students: +j.students || 1 } : {}) });
 
 function deduction(job, gross) {
   if (job.tax === '33') {
@@ -536,8 +546,9 @@ function calcMonth(y, m) {
     if (r.hours > 0 || r.holiday > 0) {
       out.rows.push(r);
       out.base += r.base; out.holiday += r.holiday; out.gross += r.gross; out.ded += r.ded; out.net += r.net; out.hours += r.hours;
-      if (job.wage < mw.wage)
-        out.warns.push(`${job.academy} · ${job.type}: ${payHours(job) === 1 ? "시급" : "1시간 환산"} ${won(job.wage)}이 ${mw.year}년 최저시급(${won(mw.wage)})보다 낮아요.`);
+      const hourly = isRatio(job) ? (r.hours ? r.base / r.hours : 0) : job.wage;
+      if (hourly < mw.wage)
+        out.warns.push(`${job.academy} · ${job.type}: ${isRatio(job) ? '1시간 평균' : payHours(job) === 1 ? "시급" : "1시간 환산"} ${won(hourly)}이 ${mw.year}년 최저시급(${won(mw.wage)})보다 낮아요.`);
       if (over15 && !job.weekly)
         out.warns.push(`${job.academy} · ${job.type}: 주 15시간 이상 일한 주가 있어요. 주휴수당 대상일 수 있으니 알바 설정에서 '주휴수당 계산'을 켜 보세요.`);
     }
@@ -627,11 +638,11 @@ function jobLabel(j) { return `${esc(j.academy)} · ${esc(j.type)}`; }
 // 급여는 'N시간당 X원'으로 저장하고, 계산에는 1시간 환산 금액(wage)을 써요
 const payHours = j => +j.payHours || 1;
 const payAmount = j => j.payAmount ?? j.wage;
-const payText = j => payHours(j) === 1 ? `시급 ${won(j.wage)}` : `${hrs(payHours(j))}당 ${won(payAmount(j))}`;
-function wageHint(h, amt) {
-  const mw = minWage(ui.y), per = h > 0 ? amt / h : 0;
+const payText = j => (isRatio(j) ? '학생 1명당 ' : '') + (payHours(j) === 1 ? `시급 ${won(j.wage)}` : `${hrs(payHours(j))}당 ${won(payAmount(j))}`);
+function wageHint(h, amt, stu) {
+  const mw = minWage(ui.y), per = (h > 0 ? amt / h : 0) * (stu || 1);
   const low = per > 0 && per < mw.wage;
-  return (h !== 1 && per > 0 ? `1시간 환산 <b>${won(per)}</b> · ` : '')
+  return (stu ? `학생 ${stu}명이면 1시간 <b>${won(per)}</b> · ` : h !== 1 && per > 0 ? `1시간 환산 <b>${won(per)}</b> · ` : '')
     + `<span style="${low ? 'color:var(--warn);font-weight:600' : ''}">${mw.year}년 최저시급 ${won(mw.wage)}${low ? ' 미만이에요' : ''}</span>`;
 }
 
@@ -782,7 +793,7 @@ function viewLog() {
       const pj = perJob[j.id] = perJob[j.id] || { j, days: new Set(), h: 0 };
       pj.days.add(k); pj.h += h;
       return `<div class="log-shift"><div class="row"><span class="dot" style="--c:${j.color}"></span><b class="small">${jobLabel(j)}</b></div>
-        <div class="muted small num" style="padding-left:16px">${esc(s.start)}~${esc(s.end)}${+s.brk ? ` · 휴게 ${s.brk}분` : ''} · ${hrs(h)}</div></div>`;
+        <div class="muted small num" style="padding-left:16px">${esc(s.start)}~${esc(s.end)}${+s.brk ? ` · 휴게 ${s.brk}분` : ''} · ${hrs(h)}${stuText(s)}</div></div>`;
     }).join('');
     cnt++;
     days += `<div class="log-day ${k > todayK ? 'future' : ''}" data-act="logDay" data-k="${k}">
@@ -814,9 +825,9 @@ function viewSet() {
   const jobs = state.jobs.length ? state.jobs.map(j => `<div class="item tap row" data-act="editJob" data-id="${j.id}">
       <div class="swatch" style="--c:${j.color}"><i></i></div>
       <div class="grow"><b>${jobLabel(j)}</b>
-        <div class="muted small num">${payText(j)} · ${esc(j.start)}~${esc(j.end)}${+j.brk ? ` · 휴게 ${j.brk}분` : ''}</div>
+        <div class="muted small num">${payText(j)}${isRatio(j) ? ` · 기본 학생 ${+j.students || 1}명` : ''} · ${esc(j.start)}~${esc(j.end)}${+j.brk ? ` · 휴게 ${j.brk}분` : ''}</div>
         <div class="muted tiny">${j.weekly ? '주휴수당 O' : '주휴수당 X'} · ${j.tax === '33' ? '3.3% 공제' : j.tax === 'custom' ? j.rate + '% 공제' : '공제 없음'}</div>
-        ${j.wage < mw.wage ? `<div class="tiny" style="color:var(--warn);font-weight:600">${mw.year}년 최저시급(${won(mw.wage)}) 미만</div>` : ''}
+        ${!isRatio(j) && j.wage < mw.wage ? `<div class="tiny" style="color:var(--warn);font-weight:600">${mw.year}년 최저시급(${won(mw.wage)}) 미만</div>` : ''}
       </div>
       <span class="muted">${ic('chev', 18)}</span>
     </div>`).join('') : `<div class="muted small">등록된 알바가 없어요.</div>`;
@@ -880,14 +891,14 @@ function sheetDay(k) {
   const list = shiftsOn(k);
   const ed = ui.editShift ? list.find(s => s.id === ui.editShift) : null;
   const j0 = ed ? jobById(ed.jobId) : (jobById(state.pref.selJob) || state.jobs[0]);
-  const v = ed || { jobId: j0.id, start: j0.start, end: j0.end, brk: j0.brk };
+  const v = ed || newShift(j0);
   const items = list.length ? list.map(s => {
     const j = jobById(s.jobId); if (!j) return '';
     const h = hoursOf(s);
     return `<div class="item row">
       <div class="swatch" style="--c:${j.color}"><i></i></div>
       <div class="grow"><b>${jobLabel(j)}</b>
-        <div class="muted small num">${esc(s.start)}~${esc(s.end)}${+s.brk ? ` · 휴게 ${s.brk}분` : ''} · ${hrs(h)} · ${won(h * wageOf(s))}</div></div>
+        <div class="muted small num">${esc(s.start)}~${esc(s.end)}${+s.brk ? ` · 휴게 ${s.brk}분` : ''} · ${hrs(h)}${stuText(s)} · ${won(h * wageOf(s))}</div></div>
       <button class="btn line sm" data-act="editShift" data-k="${k}" data-id="${s.id}">수정</button>
       <button class="btn danger sm" data-act="delShift" data-k="${k}" data-id="${s.id}" aria-label="삭제">${ic('trash', 16)}</button>
     </div>`;
@@ -904,6 +915,8 @@ function sheetDay(k) {
         <label class="f grow"><span>퇴근</span><input class="in" type="time" id="fEnd" value="${esc(v.end)}"></label>
       </div>
       <label class="f"><span>휴게시간 (분)</span><input class="in" type="number" inputmode="numeric" min="0" step="5" id="fBrk" value="${+v.brk || 0}"></label>
+      <label class="f" id="fStuWrap" style="${isRatio(jobById(v.jobId)) ? '' : 'display:none'}"><span>이날 학생 수 (명)</span>
+        <input class="in num" type="number" inputmode="numeric" min="1" step="1" id="fStu" value="${studentsOf(v)}"></label>
       <p class="hint">퇴근 시간이 출근보다 빠르면 다음 날 퇴근으로 계산해요.</p>
       <div class="row" style="margin-top:14px">
         ${ed ? `<button class="btn line" data-act="cancelEdit" data-k="${k}">취소</button>` : ''}
@@ -915,7 +928,7 @@ function sheetDay(k) {
 function sheetJob(id) {
   const j = id ? jobById(id) : null;
   ui.editJob = id || null;
-  const v = j || { academy: '', type: '', wage: minWage(ui.y).wage, start: '14:00', end: '18:00', brk: 0, weekly: false, tax: 'none', rate: 0,
+  const v = j || { academy: '', type: '', students: 1, wage: minWage(ui.y).wage, start: '14:00', end: '18:00', brk: 0, weekly: false, tax: 'none', rate: 0,
     color: COLORS[state.jobs.length % COLORS.length] };
   ui.jobColor = v.color;
   const acads = [...new Set(state.jobs.map(x => x.academy))];
@@ -925,15 +938,17 @@ function sheetJob(id) {
     <datalist id="acadList">${acads.map(a => `<option value="${esc(a)}">`).join('')}</datalist>
     <label class="f"><span>알바 유형</span><input class="in" id="jType" list="typeList" placeholder="골라도 되고 직접 써도 돼요" value="${esc(v.type)}"></label>
     <datalist id="typeList">${TYPES.map(t => `<option value="${t}">`).join('')}</datalist>
-    <label class="f"><span>급여 기준</span></label>
+    <label class="f" id="jStuWrap" style="${isRatio(v) ? '' : 'display:none'}"><span>기본 학생 수 (명)</span>
+      <input class="in num" id="jStu" type="number" inputmode="numeric" min="1" step="1" value="${+v.students || 1}"></label>
+    <label class="f"><span id="jPayLabel">${isRatio(v) ? '학생 1명당 급여' : '급여 기준'}</span></label>
     <div class="row">
       <input class="in num" id="jPayH" type="number" inputmode="decimal" min="0.5" step="0.5" value="${payHours(v)}" style="width:76px;flex:none;text-align:center" aria-label="몇 시간당">
       <span class="muted" style="flex:none;font-weight:600">시간당</span>
       <input class="in num grow" id="jWage" type="number" inputmode="numeric" min="0" step="10" value="${+payAmount(v) || ''}" aria-label="금액(원)">
       <span class="muted" style="flex:none;font-weight:600">원</span>
     </div>
-    <p class="hint" id="jWageHint">${wageHint(payHours(v), +payAmount(v) || 0)}</p>
-    <p class="hint" style="margin-top:2px">예: 시급이면 1시간당 12,000원, 2시간 수업에 3만 원이면 2시간당 30,000원</p>
+    <p class="hint" id="jWageHint">${wageHint(payHours(v), +payAmount(v) || 0, isRatio(v) && (+v.students || 1))}</p>
+    <p class="hint" style="margin-top:2px">예: 시급이면 1시간당 12,000원, 2시간 수업에 3만 원이면 2시간당 30,000원<br>강사(비율)는 학생 1명당 시급을 넣고, 날짜마다 학생 수를 고칠 수 있어요</p>
     <div class="row">
       <label class="f grow"><span>기본 출근</span><input class="in" type="time" id="jStart" value="${esc(v.start)}"></label>
       <label class="f grow"><span>기본 퇴근</span><input class="in" type="time" id="jEnd" value="${esc(v.end)}"></label>
@@ -1012,7 +1027,7 @@ const ACT = {
       for (const s of list) {
         const j = jobById(s.jobId); if (!j) continue;
         const h = hoursOf(s); hours += h;
-        lines.push(`${m + 1}/${d}(${DOW[new Date(y, m, d).getDay()]}) ${j.academy} ${j.type} ${s.start}~${s.end}${+s.brk ? ` 휴게${s.brk}분` : ''} (${hrs(h)})`);
+        lines.push(`${m + 1}/${d}(${DOW[new Date(y, m, d).getDay()]}) ${j.academy} ${j.type} ${s.start}~${s.end}${+s.brk ? ` 휴게${s.brk}분` : ''} (${hrs(h)}${stuText(s)})`);
       }
     }
     lines.push(`합계: ${cnt}일 · ${hrs(hours)}`);
@@ -1041,8 +1056,9 @@ const ACT = {
       setShifts(k, list.filter(s => s.jobId !== j.id));
       toast(`${dayLabel(k)} ${j.academy} 기록을 지웠어요`, true);
     } else {
-      setShifts(k, [...list, { id: uid(), jobId: j.id, start: j.start, end: j.end, brk: +j.brk || 0 }]);
-      toast(`${dayLabel(k)} 출근 · ${hrs(hoursOf(j))}`, true);
+      const ns = newShift(j);
+      setShifts(k, [...list, ns]);
+      toast(`${dayLabel(k)} 출근 · ${hrs(hoursOf(j))}${stuText(ns)}`, true);
     }
     save(); render();
   },
@@ -1058,10 +1074,14 @@ const ACT = {
     const s = { jobId: $('#fJob').value, start: $('#fStart').value, end: $('#fEnd').value, brk: Math.max(0, +$('#fBrk').value || 0) };
     if (!s.start || !s.end) return toast('출근·퇴근 시간을 입력해 주세요');
     if (hoursOf(s) <= 0) return toast('근무시간이 0이에요. 시간을 확인해 주세요');
+    if (isRatio(jobById(s.jobId))) {
+      s.students = Math.round(+$('#fStu').value || 0);
+      if (s.students < 1) return toast('학생 수를 입력해 주세요');
+    }
     snapshot();
     const list = shiftsOn(k);
     if (ui.editShift) {
-      setShifts(k, list.map(x => x.id === ui.editShift ? { ...x, ...s, wage: x.jobId === s.jobId ? x.wage : undefined } : x));
+      setShifts(k, list.map(x => x.id === ui.editShift ? { ...x, students: undefined, ...s, wage: x.jobId === s.jobId ? x.wage : undefined } : x));
     } else {
       setShifts(k, [...list, { id: uid(), ...s }]);
     }
@@ -1075,6 +1095,10 @@ const ACT = {
       brk: Math.max(0, +$('#jBrk').value || 0), weekly: $('#jWeekly').checked, tax: $('#jTax').value,
       rate: Math.min(100, Math.max(0, +$('#jRate').value || 0)), color: ui.jobColor,
     };
+    if (isRatio(j)) {
+      j.students = Math.round(+$('#jStu').value || 0);
+      if (j.students < 1) return toast('기본 학생 수를 입력해 주세요');
+    }
     if (!j.academy) return toast('학원 이름을 입력해 주세요');
     if (!(j.payHours > 0)) return toast('몇 시간당 금액인지 입력해 주세요');
     if (!(j.payAmount > 0)) return toast('급여 금액을 입력해 주세요');
@@ -1154,14 +1178,20 @@ document.addEventListener('click', e => {
   if (t && ACT[t.dataset.act]) ACT[t.dataset.act](t, e);
 });
 document.addEventListener('input', e => {
-  if (e.target.id === 'jPayH' || e.target.id === 'jWage') $('#jWageHint').innerHTML = wageHint(+$('#jPayH').value || 0, +$('#jWage').value || 0);
+  if (['jPayH', 'jWage', 'jStu', 'jType'].includes(e.target.id)) {
+    const ratio = $('#jType').value.trim() === RATIO;
+    $('#jStuWrap').style.display = ratio ? '' : 'none';
+    $('#jPayLabel').textContent = ratio ? '학생 1명당 급여' : '급여 기준';
+    $('#jWageHint').innerHTML = wageHint(+$('#jPayH').value || 0, +$('#jWage').value || 0, ratio && (+$('#jStu').value || 1));
+  }
 });
 document.addEventListener('change', e => {
   if (e.target.id === 'jTax') $('#jRateWrap').style.display = e.target.value === 'custom' ? '' : 'none';
   if (e.target.id === 'fJob' && !ui.editShift) {
     const j = jobById(e.target.value);
-    if (j) { $('#fStart').value = j.start; $('#fEnd').value = j.end; $('#fBrk').value = +j.brk || 0; }
+    if (j) { $('#fStart').value = j.start; $('#fEnd').value = j.end; $('#fBrk').value = +j.brk || 0; $('#fStu').value = +j.students || 1; }
   }
+  if (e.target.id === 'fJob') $('#fStuWrap').style.display = isRatio(jobById(e.target.value)) ? '' : 'none';
   if (e.target.id === 'importFile') {
     const f = e.target.files[0]; if (!f) return;
     f.text().then(restore); e.target.value = '';
