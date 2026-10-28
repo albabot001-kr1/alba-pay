@@ -244,6 +244,46 @@ nav.tabs button .pillic{width:52px;height:30px;border-radius:999px;display:grid;
 nav.tabs button.on{color:var(--text)}
 nav.tabs button.on .pillic{background:var(--accent);color:var(--accent-ink)}
 
+nav.tabs .brand{display:none}
+.pill .pn{display:none}
+
+/* PC 화면: 왼쪽 사이드바 + 두 칸 배치 */
+@media (min-width:960px){
+  body{padding:0 0 40px 240px}
+  .app{max-width:1120px;padding:0 32px}
+  header{padding:28px 0 18px}
+  .mtitle .m{font-size:32px}
+  nav.tabs{top:0;bottom:0;right:auto;width:240px;padding:24px 16px;background:var(--surface);border-right:1px solid var(--line)}
+  nav.tabs .in2{flex-direction:column;gap:4px;max-width:none;background:none;box-shadow:none;border-radius:0;padding:0;-webkit-backdrop-filter:none;backdrop-filter:none}
+  nav.tabs .brand{display:flex;align-items:center;gap:10px;font-size:17px;font-weight:800;padding:0 8px 22px}
+  nav.tabs .brand img{width:36px;height:36px;border-radius:11px}
+  nav.tabs button{flex:none;flex-direction:row;justify-content:flex-start;gap:10px;padding:6px 8px;border-radius:14px;font-size:15px;transition:background .15s}
+  nav.tabs button .pillic{width:40px;height:34px;border-radius:11px}
+  nav.tabs button:hover{background:var(--surface-2)}
+  nav.tabs button.on{background:var(--accent-soft);color:var(--text)}
+  .cols{display:grid;gap:24px;align-items:start}
+  .cols .col-a{position:sticky;top:100px}
+  .side-layout{grid-template-columns:380px minmax(0,1fr)}
+  .cal-layout{grid-template-columns:minmax(0,1fr) 340px}
+  .cal-layout .col-b{order:-1}
+  .even-layout{grid-template-columns:1fr 1fr}
+  .even-layout .col-a{position:static}
+  .hero{margin-top:0}
+  .hero-amt{font-size:38px}
+  .chips{flex-wrap:wrap;overflow:visible;margin:12px 0 0;padding:0}
+  .cal{margin-top:0;padding:18px 14px 12px}
+  .grid{gap:6px}
+  .day{min-height:96px;align-items:stretch;padding:8px 6px;gap:4px}
+  .day .n{align-self:flex-start}
+  .day:hover{background:var(--surface-2)}
+  .pill{width:100%;font-size:11.5px;padding:2px 6px;text-align:left;text-overflow:ellipsis}
+  .pill .pn{display:inline;font-weight:600;opacity:.8}
+  .overlay{align-items:center}
+  .sheet{border-radius:24px;max-height:86vh;padding:24px}
+  .grab{display:none}
+  #toast{bottom:32px;left:calc(50% + 120px)}
+}
+
 /* 바텀시트 */
 .overlay{position:fixed;inset:0;background:rgba(20,15,0,.45);z-index:20;display:flex;align-items:flex-end;justify-content:center;animation:fade .2s}
 .sheet{background:var(--surface);width:100%;max-width:520px;border-radius:26px 26px 0 0;padding:10px 20px calc(24px + env(safe-area-inset-bottom));max-height:90vh;overflow:auto;animation:up .25s cubic-bezier(.2,.8,.2,1)}
@@ -271,6 +311,7 @@ nav.tabs button.on .pillic{background:var(--accent);color:var(--accent-ink)}
   <main id="view"></main>
 </div>
 <nav class="tabs"><div class="in2">
+  <div class="brand"><img src="icon-192.png" alt=""><b>알바 월급</b></div>
   <button data-act="tab" data-tab="cal"><span class="pillic" data-ic="cal"></span>달력</button>
   <button data-act="tab" data-tab="log"><span class="pillic" data-ic="clip"></span>출근부</button>
   <button data-act="tab" data-tab="pay"><span class="pillic" data-ic="wallet"></span>월급</button>
@@ -536,6 +577,9 @@ function hero(label, net, stats) {
 }
 const warnBox = w => `<div class="warn">${ic('alert', 16)}<span>${esc(w)}</span></div>`;
 
+// 폰에서는 a, b를 위아래로 쌓고, PC에서는 두 칸으로 나눠요 (배치는 CSS의 *-layout 이 정해요)
+const cols = (a, b, layout) => `<div class="cols ${layout}"><div class="col-a">${a}</div><div class="col-b">${b}</div></div>`;
+
 function viewCal() {
   const { y, m } = ui;
   const c = calcMonth(y, m);
@@ -559,14 +603,14 @@ function viewCal() {
     for (const s of list) byJob[s.jobId] = (byJob[s.jobId] || 0) + hoursOf(s);
     const pills = Object.entries(byJob).map(([id, h]) => {
       const j = jobById(id); if (!j) return '';
-      return `<i class="pill" style="--c:${j.color}">${Math.round(h * 10) / 10}h</i>`;
+      return `<i class="pill" style="--c:${j.color}">${Math.round(h * 10) / 10}h<span class="pn"> ${esc(j.academy)}</span></i>`;
     }).join('');
     cells += `<button class="day ${wd === 0 ? 'sun' : wd === 6 ? 'sat' : ''} ${k === todayK ? 'today' : ''} ${list.length ? 'has' : ''}"
       data-act="day" data-k="${k}" aria-label="${m + 1}월 ${d}일"><span class="n">${d}</span>${pills}</button>`;
   }
   const chips = state.jobs.map(j => `<button class="chip ${j.id === sel ? 'on' : ''}" style="--c:${j.color}" data-act="selJob" data-id="${j.id}">
     <span class="dot"></span>${jobLabel(j)}</button>`).join('') + `<button class="chip add" data-act="newJob">${ic('plus', 16)}추가</button>`;
-  return `
+  return cols(`
   ${hero(`${whose()}${m + 1}월 예상 실수령액`, c.net, [['세전', won(c.gross)], ['근무', hrs(c.hours)], ['출근', c.days + '일']])}
   <div class="seg" role="tablist">
     <button class="${mode === 'quick' ? 'on' : ''}" data-act="mode" data-mode="quick">${ic('bolt', 16)}빠른 체크</button>
@@ -575,9 +619,9 @@ function viewCal() {
   <p class="hint">${mode === 'quick'
     ? '알바를 고른 뒤 날짜를 누르면 기본 근무시간으로 기록돼요. 한 번 더 누르면 지워져요.'
     : '날짜를 누르면 그날의 출근·퇴근 시간과 휴게시간을 직접 입력하거나 고칠 수 있어요.'}</p>
-  ${mode === 'quick' ? `<div class="chips">${chips}</div>` : ''}
+  ${mode === 'quick' ? `<div class="chips">${chips}</div>` : ''}`, `
   <div class="cal"><div class="grid">${cells}</div></div>
-  ${c.warns.length ? `<div style="margin-top:12px">${c.warns.map(warnBox).join('')}</div>` : ''}`;
+  ${c.warns.length ? `<div style="margin-top:12px">${c.warns.map(warnBox).join('')}</div>` : ''}`, 'cal-layout');
 }
 
 function viewPay() {
@@ -617,7 +661,7 @@ function viewPay() {
         <b class="num">${won(sum)}</b></div>
       <div class="list">${items}</div></div>`;
   }).join('');
-  return `
+  return cols(`
   ${hero(`${whose()}${y}년 ${m + 1}월 예상 실수령액`, c.net, [['세전', won(c.gross)], ['공제', c.ded ? '−' + won(c.ded) : '0원'], ['근무', hrs(c.hours)]])}
   ${c.warns.map(warnBox).join('')}
   <div class="card">
@@ -628,11 +672,11 @@ function viewPay() {
     <div class="kv"><span>주휴수당</span><b>${won(c.holiday)}</b></div>
     <div class="kv"><span>공제</span><b>${c.ded ? '−' + won(c.ded) : '0원'}</b></div>
     <div class="kv total"><span>실수령액</span><b>${won(c.net)}</b></div>
-  </div>
+  </div>`, `
   ${acad}
   <p class="notes">· 주휴수당은 월~일 한 주에 15시간 이상 일한 경우, (주 근무시간 ÷ 40) × 8시간 × 시급으로 계산해요(최대 8시간분). 그 주의 일요일이 속한 달에 포함돼요.<br>
   · 3.3%는 소득세 3%와 지방소득세 0.3%를 각각 10원 미만 버림으로 계산해요.<br>
-  · 실제 지급액은 학원의 정산 방식에 따라 다를 수 있어요.</p>`;
+  · 실제 지급액은 학원의 정산 방식에 따라 다를 수 있어요.</p>`, 'side-layout');
 }
 
 function viewLog() {
@@ -687,14 +731,14 @@ function viewLog() {
       <button class="btn" data-act="tab" data-tab="cal">달력으로</button></div>`;
   }
   const chips = Object.values(perJob).map(p => `<span class="sum-chip" style="--c:${p.j.color}"><span class="dot"></span>${jobLabel(p.j)} · ${p.days.size}일 · ${hrs(p.h)}</span>`).join('');
-  return `${trek}
+  return cols(`${trek}
   <div class="card">
     <div class="card-head"><h2>${m + 1}월 출근부</h2><button class="btn line sm" data-act="copyLog">${ic('copy', 16)}복사</button></div>
     <div class="muted small num">총 ${cnt}일 · ${hrs(hours)}</div>
     <div class="sum-chips">${chips}</div>
-  </div>
+  </div>`, `
   <div class="card"><div>${days}</div></div>
-  <p class="notes">· 날짜를 누르면 그날 근무를 고칠 수 있어요.<br>· 오늘 이후 날짜는 '예정'으로 표시되고 진행도에는 포함되지 않아요.<br>· '복사'를 누르면 학원에 보낼 수 있는 글 형태로 복사돼요.</p>`;
+  <p class="notes">· 날짜를 누르면 그날 근무를 고칠 수 있어요.<br>· 오늘 이후 날짜는 '예정'으로 표시되고 진행도에는 포함되지 않아요.<br>· '복사'를 누르면 학원에 보낼 수 있는 글 형태로 복사돼요.</p>`, 'side-layout');
 }
 
 function viewSet() {
@@ -709,7 +753,7 @@ function viewSet() {
       </div>
       <span class="muted">${ic('chev', 18)}</span>
     </div>`).join('') : `<div class="muted small">등록된 알바가 없어요.</div>`;
-  return `
+  return cols(`
   <div class="card">
     <div class="card-head"><h2>내 정보</h2></div>
     <label class="f" style="margin-top:0"><span>내 이름</span></label>
@@ -722,7 +766,7 @@ function viewSet() {
   <div class="card">
     <div class="card-head"><h2>내 알바</h2><button class="btn soft sm" data-act="newJob">${ic('plus', 16)}추가</button></div>
     <div class="list">${jobs}</div>
-  </div>
+  </div>`, `
   <div class="card">
     <div class="card-head"><h2>화면 테마</h2></div>
     <div class="seg">
@@ -746,7 +790,7 @@ function viewSet() {
     <div><h3>데이터 삭제</h3><div class="muted small">이 기기의 모든 기록을 지워요</div></div>
     <button class="btn danger sm" data-act="wipe">${ic('trash', 16)}삭제</button>
   </div>
-  ${privacyNote()}`;
+  ${privacyNote()}`, 'even-layout');
 }
 
 function privacyNote() {
