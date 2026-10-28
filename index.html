@@ -481,7 +481,7 @@ function calcMonth(y, m) {
       out.rows.push(r);
       out.base += r.base; out.holiday += r.holiday; out.gross += r.gross; out.ded += r.ded; out.net += r.net; out.hours += r.hours;
       if (job.wage < mw.wage)
-        out.warns.push(`${job.academy} · ${job.type}: 시급 ${won(job.wage)}이 ${mw.year}년 최저시급(${won(mw.wage)})보다 낮아요.`);
+        out.warns.push(`${job.academy} · ${job.type}: ${payHours(job) === 1 ? "시급" : "1시간 환산"} ${won(job.wage)}이 ${mw.year}년 최저시급(${won(mw.wage)})보다 낮아요.`);
       if (over15 && !job.weekly)
         out.warns.push(`${job.academy} · ${job.type}: 주 15시간 이상 일한 주가 있어요. 주휴수당 대상일 수 있으니 알바 설정에서 '주휴수당 계산'을 켜 보세요.`);
     }
@@ -568,6 +568,17 @@ const whose = () => myName() ? `${esc(myName())}님의 ` : '';
 
 function jobLabel(j) { return `${esc(j.academy)} · ${esc(j.type)}`; }
 
+// 급여는 'N시간당 X원'으로 저장하고, 계산에는 1시간 환산 금액(wage)을 써요
+const payHours = j => +j.payHours || 1;
+const payAmount = j => j.payAmount ?? j.wage;
+const payText = j => payHours(j) === 1 ? `시급 ${won(j.wage)}` : `${hrs(payHours(j))}당 ${won(payAmount(j))}`;
+function wageHint(h, amt) {
+  const mw = minWage(ui.y), per = h > 0 ? amt / h : 0;
+  const low = per > 0 && per < mw.wage;
+  return (h !== 1 && per > 0 ? `1시간 환산 <b>${won(per)}</b> · ` : '')
+    + `<span style="${low ? 'color:var(--warn);font-weight:600' : ''}">${mw.year}년 최저시급 ${won(mw.wage)}${low ? ' 미만이에요' : ''}</span>`;
+}
+
 function hero(label, net, stats) {
   return `<section class="hero">
     <div class="hero-label">${label}</div>
@@ -643,7 +654,7 @@ function viewPay() {
       const j = r.job;
       const taxLabel = j.tax === '33' ? '3.3% 원천징수' : j.tax === 'custom' ? `공제 ${j.rate}%` : '공제';
       return `<div class="item">
-        <div class="job-head"><span class="dot" style="--c:${j.color}"></span><b>${esc(j.type)}</b><span class="tag num">시급 ${won(j.wage)}</span></div>
+        <div class="job-head"><span class="dot" style="--c:${j.color}"></span><b>${esc(j.type)}</b><span class="tag num">${payText(j)}</span></div>
         <div class="kv"><span>근무</span><b>${r.days}일 · ${hrs(r.hours)}</b></div>
         <div class="kv"><span>기본급</span><b>${won(r.base)}</b></div>
         ${j.weekly ? `<div class="kv"><span>주휴수당</span><b>${won(r.holiday)}</b></div>` : ''}
@@ -747,7 +758,7 @@ function viewSet() {
   const jobs = state.jobs.length ? state.jobs.map(j => `<div class="item tap row" data-act="editJob" data-id="${j.id}">
       <div class="swatch" style="--c:${j.color}"><i></i></div>
       <div class="grow"><b>${jobLabel(j)}</b>
-        <div class="muted small num">시급 ${won(j.wage)} · ${esc(j.start)}~${esc(j.end)}${+j.brk ? ` · 휴게 ${j.brk}분` : ''}</div>
+        <div class="muted small num">${payText(j)} · ${esc(j.start)}~${esc(j.end)}${+j.brk ? ` · 휴게 ${j.brk}분` : ''}</div>
         <div class="muted tiny">${j.weekly ? '주휴수당 O' : '주휴수당 X'} · ${j.tax === '33' ? '3.3% 공제' : j.tax === 'custom' ? j.rate + '% 공제' : '공제 없음'}</div>
         ${j.wage < mw.wage ? `<div class="tiny" style="color:var(--warn);font-weight:600">${mw.year}년 최저시급(${won(mw.wage)}) 미만</div>` : ''}
       </div>
@@ -858,8 +869,15 @@ function sheetJob(id) {
     <datalist id="acadList">${acads.map(a => `<option value="${esc(a)}">`).join('')}</datalist>
     <label class="f"><span>알바 유형</span><input class="in" id="jType" list="typeList" placeholder="골라도 되고 직접 써도 돼요" value="${esc(v.type)}"></label>
     <datalist id="typeList">${TYPES.map(t => `<option value="${t}">`).join('')}</datalist>
-    <label class="f"><span>시급 (원)</span><input class="in num" id="jWage" type="number" inputmode="numeric" min="0" step="10" value="${+v.wage || ''}"></label>
-    <p class="hint">${minWage(ui.y).year}년 최저시급 ${won(minWage(ui.y).wage)}</p>
+    <label class="f"><span>급여 기준</span></label>
+    <div class="row">
+      <input class="in num" id="jPayH" type="number" inputmode="decimal" min="0.5" step="0.5" value="${payHours(v)}" style="width:76px;flex:none;text-align:center" aria-label="몇 시간당">
+      <span class="muted" style="flex:none;font-weight:600">시간당</span>
+      <input class="in num grow" id="jWage" type="number" inputmode="numeric" min="0" step="10" value="${+payAmount(v) || ''}" aria-label="금액(원)">
+      <span class="muted" style="flex:none;font-weight:600">원</span>
+    </div>
+    <p class="hint" id="jWageHint">${wageHint(payHours(v), +payAmount(v) || 0)}</p>
+    <p class="hint" style="margin-top:2px">예: 시급이면 1시간당 12,000원, 2시간 수업에 3만 원이면 2시간당 30,000원</p>
     <div class="row">
       <label class="f grow"><span>기본 출근</span><input class="in" type="time" id="jStart" value="${esc(v.start)}"></label>
       <label class="f grow"><span>기본 퇴근</span><input class="in" type="time" id="jEnd" value="${esc(v.end)}"></label>
@@ -996,17 +1014,20 @@ const ACT = {
   saveJob: () => {
     const j = {
       academy: $('#jAcad').value.trim(), type: $('#jType').value.trim() || '알바',
-      wage: Math.round(+$('#jWage').value || 0), start: $('#jStart').value || '09:00', end: $('#jEnd').value || '18:00',
+      payHours: Math.round((+$('#jPayH').value || 0) * 100) / 100, payAmount: Math.round(+$('#jWage').value || 0),
+      start: $('#jStart').value || '09:00', end: $('#jEnd').value || '18:00',
       brk: Math.max(0, +$('#jBrk').value || 0), weekly: $('#jWeekly').checked, tax: $('#jTax').value,
       rate: Math.min(100, Math.max(0, +$('#jRate').value || 0)), color: ui.jobColor,
     };
     if (!j.academy) return toast('학원 이름을 입력해 주세요');
-    if (!(j.wage > 0)) return toast('시급을 입력해 주세요');
+    if (!(j.payHours > 0)) return toast('몇 시간당 금액인지 입력해 주세요');
+    if (!(j.payAmount > 0)) return toast('급여 금액을 입력해 주세요');
+    j.wage = j.payAmount / j.payHours;
     if (hoursOf(j) <= 0) return toast('기본 근무시간을 확인해 주세요');
     if (ui.editJob) {
       const old = jobById(ui.editJob);
       if (old.wage !== j.wage) {
-        const keepPast = confirm(`시급이 ${won(old.wage)} → ${won(j.wage)}로 바뀌어요.\n\n지난달까지의 기록은 기존 시급을 유지할까요?\n[확인] 지난달까지는 기존 시급 유지\n[취소] 모든 기록에 새 시급 적용`);
+        const keepPast = confirm(`급여가 ${payText(old)} → ${payText(j)}로 바뀌어요.\n\n지난달까지의 기록은 기존 급여를 유지할까요?\n[확인] 지난달까지는 기존 급여 유지\n[취소] 모든 기록에 새 급여 적용`);
         const cut = dkey(ui.y, ui.m, 1);
         for (const [k, list] of Object.entries(state.shifts)) for (const s of list) {
           if (s.jobId !== old.id) continue;
@@ -1075,6 +1096,9 @@ function restore(text) {
 document.addEventListener('click', e => {
   const t = e.target.closest('[data-act]');
   if (t && ACT[t.dataset.act]) ACT[t.dataset.act](t, e);
+});
+document.addEventListener('input', e => {
+  if (e.target.id === 'jPayH' || e.target.id === 'jWage') $('#jWageHint').innerHTML = wageHint(+$('#jPayH').value || 0, +$('#jWage').value || 0);
 });
 document.addEventListener('change', e => {
   if (e.target.id === 'jTax') $('#jRateWrap').style.display = e.target.value === 'custom' ? '' : 'none';
