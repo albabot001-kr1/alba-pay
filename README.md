@@ -11,24 +11,19 @@
 | `sw.js` | 오프라인에서도 열리게 하는 서비스 워커 |
 | `icon-*.png` | 앱 아이콘 |
 
-## 무료로 배포하기 (링크 만들기)
-사용자는 계정이 필요 없지만, 링크를 만들려면 무료 호스팅 계정이 **1개** 필요합니다.
-개인 계정을 쓰고 싶지 않다면 이 앱 전용 이메일(예: 새 Gmail)을 하나 만들어 쓰세요.
+## 배포
+- **앱 주소**: https://alba-pay.vercel.app
+- **저장소**: https://github.com/albabot001-kr1/alba-pay (앱 전용 계정 `albabot001-kr1`)
+- **호스팅**: Vercel 무료(Hobby) 플랜. GitHub 저장소와 연결되어 있습니다.
+- GitHub Pages는 사용하지 않습니다(꺼 둠).
 
-### 방법 1. Netlify (가장 쉬움, 드래그 앤 드롭)
-1. https://app.netlify.com/drop 접속
-2. `alba-pay` 폴더를 통째로 끌어다 놓기
-3. 앱 전용 이메일로 가입해 사이트를 저장(claim)하기. 저장하지 않으면 링크가 곧 사라집니다.
-4. Site settings에서 사이트 이름을 바꾸면 `https://원하는이름.netlify.app` 같은 주소가 됩니다.
-5. 수정본을 올릴 때는 Deploys 탭에 폴더를 다시 끌어다 놓으면 됩니다.
+### 수정본 올리는 법
+`main` 브랜치에 push하면 Vercel이 자동으로 다시 배포합니다(보통 10초 이내).
+앱 파일을 바꿨다면 `sw.js`의 `CACHE` 버전 숫자도 함께 올려야 직원들 폰에 새 버전이 적용됩니다.
 
-### 방법 2. GitHub Pages
-1. 앱 전용 이메일로 GitHub 가입 → 새 저장소(Public) 생성
-2. 이 폴더의 파일들을 업로드 (Add file → Upload files)
-3. Settings → Pages → Branch를 `main`으로 지정 → 저장
-4. 몇 분 뒤 `https://아이디.github.io/저장소이름/` 주소가 생깁니다.
-
-> 주소는 반드시 `https://`여야 "홈 화면에 추가"와 오프라인 기능이 동작합니다. 위 두 방법 모두 자동으로 https입니다.
+이 PC의 `alba-pay` 폴더는 다른 GitHub 계정과 섞이지 않도록 폴더 안에서만 아래처럼 설정되어 있습니다.
+- 원격 주소: `https://albabot001-kr1@github.com/albabot001-kr1/alba-pay.git`
+- 로그인 방식: 코드 입력(device code) 방식
 
 ## 직원들에게 안내할 내용
 1. 링크를 폰에서 열기
