@@ -3,7 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#2563eb">
+<meta name="theme-color" content="#FAF7F0" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#121110" media="(prefers-color-scheme: dark)">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="알바월급">
@@ -11,110 +12,193 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icon-180.png">
 <link rel="icon" href="icon-192.png">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
 <title>알바 월급 계산기</title>
 <style>
 :root{
-  --bg:#f4f5f9;--card:#fff;--text:#191c23;--muted:#6b7280;--line:#e4e6ec;
-  --accent:#2563eb;--accent-soft:#e8efff;--danger:#dc2626;
-  --warn-bg:#fff6e5;--warn:#a15c07;--sun:#dc2626;--sat:#2563eb;--shadow:0 1px 3px rgba(0,0,0,.06);
+  --bg:#FAF7F0;--surface:#FFFFFF;--surface-2:#F4F0E6;--text:#1C1A15;--muted:#7A7468;--line:#ECE6D8;
+  --accent:#FFC629;--accent-strong:#F2B200;--accent-ink:#231C00;--accent-soft:#FFF4CC;--accent-text:#8A6400;
+  --danger:#D9483B;--danger-soft:#FCEBE8;--warn:#A85A0C;--warn-bg:#FFF0DF;
+  --sun:#D9483B;--sat:#3B6FD9;
+  --shadow:0 1px 2px rgba(60,45,0,.04),0 10px 30px -14px rgba(60,45,0,.16);
 }
 @media (prefers-color-scheme:dark){:root{
-  --bg:#0f1115;--card:#181b22;--text:#e8eaf0;--muted:#9aa3b2;--line:#2a2f3a;
-  --accent:#5b8cff;--accent-soft:#1c2640;--danger:#f87171;
-  --warn-bg:#2b2112;--warn:#fbbf24;--sun:#f87171;--sat:#7aa2ff;--shadow:none;
+  --bg:#121110;--surface:#1B1A17;--surface-2:#25231F;--text:#F3EFE6;--muted:#9B958A;--line:#2F2C27;
+  --accent:#FFD043;--accent-strong:#FFC629;--accent-ink:#1F1800;--accent-soft:#3A3014;--accent-text:#FFD565;
+  --danger:#FF7A6B;--danger-soft:#3A1E1B;--warn:#FFB066;--warn-bg:#33230F;
+  --sun:#FF7A6B;--sat:#86A8FF;--shadow:none;
 }}
 *{box-sizing:border-box}
 html,body{margin:0}
-body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Pretendard","Malgun Gothic","Noto Sans KR",sans-serif;
-  -webkit-tap-highlight-color:transparent;padding-bottom:calc(76px + env(safe-area-inset-bottom));font-size:15px;line-height:1.45}
-button,input,select{font:inherit;color:inherit}
-button{cursor:pointer}
+body{background:var(--bg);color:var(--text);
+  font-family:"Pretendard Variable",Pretendard,-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",sans-serif;
+  -webkit-tap-highlight-color:transparent;-webkit-font-smoothing:antialiased;letter-spacing:-.01em;
+  padding-bottom:calc(92px + env(safe-area-inset-bottom));font-size:15px;line-height:1.5}
+button,input,select,textarea{font:inherit;color:inherit;letter-spacing:inherit}
+button{cursor:pointer;-webkit-user-select:none;user-select:none}
+.ic{display:block;flex:none}
 .app{max-width:520px;margin:0 auto;padding:0 16px}
-header{position:sticky;top:0;z-index:5;background:var(--bg);display:flex;align-items:center;justify-content:space-between;
-  padding:calc(10px + env(safe-area-inset-top)) 0 8px}
-.month{font-size:20px;font-weight:700;border:0;background:none;padding:6px 8px}
-.iconbtn{width:40px;height:40px;border-radius:12px;border:1px solid var(--line);background:var(--card);font-size:18px}
-.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px;margin:12px 0;box-shadow:var(--shadow)}
-.muted{color:var(--muted)} .small{font-size:13px} .tiny{font-size:12px}
-.row{display:flex;align-items:center;gap:8px} .between{justify-content:space-between} .wrap{flex-wrap:wrap}
-.grow{flex:1;min-width:0}
-h2{font-size:17px;margin:0 0 10px} h3{font-size:16px;margin:0}
-.big{font-size:28px;font-weight:800;letter-spacing:-.5px}
 .num{font-variant-numeric:tabular-nums}
+.muted{color:var(--muted)} .small{font-size:13px} .tiny{font-size:12px}
+.row{display:flex;align-items:center;gap:10px} .between{justify-content:space-between} .grow{flex:1;min-width:0}
+h2{font-size:17px;font-weight:700;margin:0} h3{font-size:16px;font-weight:700;margin:0}
 
-.chips{display:flex;gap:8px;overflow-x:auto;padding:2px 0 6px;scrollbar-width:none}
-.chip{flex:none;border:1.5px solid var(--line);background:var(--card);border-radius:999px;padding:7px 12px;font-size:14px;display:flex;align-items:center;gap:6px}
-.chip.on{border-color:var(--c);background:color-mix(in srgb,var(--c) 15%,var(--card));font-weight:600}
+/* 헤더 */
+header{position:sticky;top:0;z-index:5;background:color-mix(in srgb,var(--bg) 88%,transparent);
+  -webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);
+  display:flex;align-items:center;justify-content:space-between;padding:calc(14px + env(safe-area-inset-top)) 0 12px}
+.mtitle{border:0;background:none;padding:0;text-align:left;display:flex;flex-direction:column;line-height:1.15}
+.mtitle .y{font-size:13px;font-weight:600;color:var(--muted)}
+.mtitle .m{font-size:26px;font-weight:800;letter-spacing:-.03em}
+.navs{display:flex;gap:8px}
+.nav-btn{width:40px;height:40px;border-radius:50%;border:0;background:var(--surface);box-shadow:var(--shadow);display:grid;place-items:center;transition:transform .15s}
+.nav-btn:active{transform:scale(.92)}
+
+/* 히어로 카드 */
+.hero{position:relative;overflow:hidden;border-radius:24px;padding:20px 20px 16px;margin:4px 0 14px;
+  background:radial-gradient(120% 140% at 100% 0%,#FFE07A 0%,var(--accent) 45%,#FFB800 100%);color:#231C00}
+.hero::after{content:"";position:absolute;right:-30px;top:-40px;width:150px;height:150px;border-radius:50%;
+  background:rgba(255,255,255,.22)}
+.hero-label{font-size:13px;font-weight:600;opacity:.75;position:relative}
+.hero-amt{font-size:34px;font-weight:800;letter-spacing:-.04em;line-height:1.2;margin:4px 0 14px;position:relative}
+.hero-amt span{font-size:20px;font-weight:700;margin-left:2px}
+.hero-stats{display:grid;grid-template-columns:repeat(3,1fr);background:rgba(255,255,255,.4);border-radius:14px;padding:10px 4px;position:relative}
+.hero-stats>div{text-align:center;display:flex;flex-direction:column;gap:1px}
+.hero-stats>div+div{border-left:1px solid rgba(35,28,0,.12)}
+.hero-stats span{font-size:11px;font-weight:600;opacity:.65}
+.hero-stats b{font-size:14px;font-weight:700}
+
+/* 카드 */
+.card{background:var(--surface);border-radius:20px;padding:16px;margin:0 0 12px;box-shadow:var(--shadow)}
+.card-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+
+/* 세그먼트 · 칩 */
+.seg{display:flex;background:var(--surface-2);border-radius:14px;padding:4px;gap:4px}
+.seg button{flex:1;border:0;background:transparent;padding:9px 6px;border-radius:10px;color:var(--muted);font-weight:600;font-size:14px;
+  display:flex;align-items:center;justify-content:center;gap:6px;transition:background .15s,color .15s}
+.seg button.on{background:var(--surface);color:var(--text);box-shadow:0 1px 3px rgba(0,0,0,.08)}
+.chips{display:flex;gap:8px;overflow-x:auto;padding:2px 0 4px;margin:12px -16px 0;padding-left:16px;padding-right:16px;scrollbar-width:none}
+.chips::-webkit-scrollbar{display:none}
+.chip{flex:none;border:0;background:var(--surface);box-shadow:var(--shadow);border-radius:999px;padding:8px 14px 8px 10px;font-size:14px;font-weight:600;
+  display:flex;align-items:center;gap:8px;color:var(--muted);transition:background .15s}
+.chip.on{background:color-mix(in srgb,var(--c) 18%,var(--surface));color:var(--text);box-shadow:inset 0 0 0 1.5px var(--c)}
+.chip.add{color:var(--accent-text);padding:8px 14px}
 .dot{width:10px;height:10px;border-radius:50%;background:var(--c);flex:none}
-.seg{display:flex;background:var(--line);border-radius:12px;padding:3px;gap:3px}
-.seg button{flex:1;border:0;background:transparent;padding:8px;border-radius:9px;color:var(--muted);font-weight:600;font-size:14px}
-.seg button.on{background:var(--card);color:var(--text);box-shadow:0 1px 2px rgba(0,0,0,.1)}
+.swatch{width:36px;height:36px;border-radius:12px;background:color-mix(in srgb,var(--c) 20%,var(--surface));display:grid;place-items:center;flex:none}
+.swatch i{width:12px;height:12px;border-radius:4px;background:var(--c)}
+.hint{font-size:12.5px;color:var(--muted);margin:8px 4px 0}
 
-.grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px}
-.dow{text-align:center;font-size:12px;color:var(--muted);padding:2px 0}
+/* 달력 */
+.cal{background:var(--surface);border-radius:20px;padding:12px 8px 8px;margin-top:12px;box-shadow:var(--shadow)}
+.grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:2px}
+.dow{text-align:center;font-size:12px;font-weight:600;color:var(--muted);padding:2px 0 6px}
 .dow.sun{color:var(--sun)} .dow.sat{color:var(--sat)}
-.day{min-height:66px;border-radius:10px;background:var(--card);border:1px solid var(--line);padding:4px 3px;display:flex;flex-direction:column;gap:2px;text-align:left;min-width:0}
-.day .n{font-size:13px;font-weight:600;padding-left:2px}
+.day{min-height:66px;border:0;background:transparent;border-radius:14px;padding:5px 2px 4px;display:flex;flex-direction:column;align-items:center;gap:3px;min-width:0;
+  transition:background .15s,transform .1s}
+.day:active{transform:scale(.94)}
+.day .n{width:28px;height:28px;display:grid;place-items:center;border-radius:50%;font-size:14px;font-weight:600}
 .day.sun .n{color:var(--sun)} .day.sat .n{color:var(--sat)}
-.day.today{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
-.day.has{background:color-mix(in srgb,var(--accent) 4%,var(--card))}
-.bar{font-size:10px;line-height:1.35;border-radius:4px;padding:0 3px;background:color-mix(in srgb,var(--c) 25%,transparent);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.day.has{background:var(--surface-2)}
+.day.today .n{background:var(--accent);color:var(--accent-ink);font-weight:800}
+.pill{display:block;width:calc(100% - 4px);font-style:normal;font-size:10.5px;font-weight:700;border-radius:6px;padding:1px 0;text-align:center;
+  background:color-mix(in srgb,var(--c) 26%,transparent);color:var(--text);white-space:nowrap;overflow:hidden}
 .blank{visibility:hidden}
 
-.btn{border:0;border-radius:12px;padding:12px 14px;font-weight:700;background:var(--accent);color:#fff;min-height:44px}
-.btn.ghost{background:var(--accent-soft);color:var(--accent)}
-.btn.line{background:transparent;border:1px solid var(--line);color:var(--text);font-weight:600}
-.btn.danger{background:transparent;border:1px solid var(--danger);color:var(--danger);font-weight:600}
+/* 버튼 · 폼 */
+.btn{border:0;border-radius:14px;padding:12px 16px;font-weight:700;background:var(--accent);color:var(--accent-ink);min-height:48px;
+  display:inline-flex;align-items:center;justify-content:center;gap:6px;transition:transform .1s,filter .15s}
+.btn:active{transform:scale(.97);filter:brightness(.96)}
+.btn.soft{background:var(--accent-soft);color:var(--accent-text)}
+.btn.line{background:var(--surface-2);color:var(--text);font-weight:600}
+.btn.danger{background:var(--danger-soft);color:var(--danger);font-weight:600}
 .btn.full{width:100%}
-.btn.sm{padding:6px 10px;min-height:34px;font-size:13px;border-radius:9px}
+.btn.sm{padding:6px 12px;min-height:36px;font-size:13px;border-radius:11px}
+.close-btn{width:36px;height:36px;border-radius:50%;border:0;background:var(--surface-2);display:grid;place-items:center}
+label.f{display:block;margin:14px 0 0}
+label.f>span{display:block;font-size:13px;font-weight:600;color:var(--muted);margin-bottom:6px}
+.in{width:100%;height:48px;border:1.5px solid transparent;border-radius:12px;background:var(--surface-2);padding:0 14px;outline:none;transition:border-color .15s,background .15s;-webkit-appearance:none;appearance:none}
+.in:focus{border-color:var(--accent-strong);background:var(--surface)}
+select.in{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%239B958A' stroke-width='2' stroke-linecap='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 12px center;padding-right:40px}
+textarea.in{height:auto;padding:12px 14px;resize:vertical}
+.toggle-row{display:flex;gap:12px;align-items:center;justify-content:space-between;margin-top:16px;padding:14px;background:var(--surface-2);border-radius:14px}
+.switch{appearance:none;-webkit-appearance:none;width:48px;height:28px;border-radius:999px;background:var(--line);position:relative;flex:none;margin:0;cursor:pointer;transition:background .2s}
+.switch::after{content:"";position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.25);transition:transform .2s}
+.switch:checked{background:var(--accent-strong)}
+.switch:checked::after{transform:translateX(20px)}
+.colors{display:flex;gap:10px;flex-wrap:wrap}
+.colors button{width:34px;height:34px;border-radius:50%;border:0;background:var(--c);box-shadow:0 0 0 0 var(--c);transition:box-shadow .15s}
+.colors button.on{box-shadow:0 0 0 3px var(--surface),0 0 0 5px var(--c)}
 
-label.f{display:block;margin:10px 0 0}
-label.f>span{display:block;font-size:13px;color:var(--muted);margin-bottom:4px}
-.in{width:100%;height:44px;border:1px solid var(--line);border-radius:10px;background:var(--bg);padding:0 12px;outline:none}
-.in:focus{border-color:var(--accent)}
-.check{display:flex;gap:10px;align-items:flex-start;margin-top:12px}
-.check input{width:20px;height:20px;margin:1px 0 0;flex:none;accent-color:var(--accent)}
-.colors{display:flex;gap:8px;flex-wrap:wrap}
-.colors button{width:32px;height:32px;border-radius:50%;border:3px solid transparent;background:var(--c)}
-.colors button.on{border-color:var(--text)}
+/* 목록 */
+.list>.item{padding:12px 0;border-top:1px solid var(--line)}
+.list>.item:first-child{border-top:0;padding-top:2px}
+.list>.item:last-child{padding-bottom:2px}
+.item.tap{cursor:pointer}
+.kv{display:flex;justify-content:space-between;align-items:baseline;padding:4px 0;gap:12px}
+.kv>span:first-child{color:var(--muted);font-size:14px}
+.kv b{font-weight:600;font-variant-numeric:tabular-nums}
+.kv.total{border-top:1px dashed var(--line);margin-top:6px;padding-top:10px}
+.kv.total>span:first-child{color:var(--text);font-weight:700}
+.kv.total b{font-size:17px;font-weight:800}
+.job-head{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.tag{font-size:12px;font-weight:600;color:var(--muted);background:var(--surface-2);border-radius:6px;padding:2px 7px}
+.warn{display:flex;gap:8px;align-items:flex-start;background:var(--warn-bg);color:var(--warn);border-radius:14px;padding:12px 14px;font-size:13px;font-weight:500;margin:0 0 12px}
+.warn .ic{margin-top:1px}
+details{margin-top:8px;background:var(--surface-2);border-radius:12px;padding:0 12px}
+details summary{cursor:pointer;color:var(--muted);font-size:13px;font-weight:600;padding:10px 0;list-style:none;display:flex;justify-content:space-between}
+details summary::-webkit-details-marker{display:none}
+details summary::after{content:"＋";font-weight:400}
+details[open] summary::after{content:"－"}
+details .kv{padding:3px 0}
+details[open]{padding-bottom:8px}
+.notes{font-size:12px;color:var(--muted);margin:16px 4px;line-height:1.7}
+.empty{text-align:center;padding:36px 20px}
+.empty-ic{width:64px;height:64px;border-radius:20px;background:var(--accent-soft);color:var(--accent-text);display:grid;place-items:center;margin:0 auto 14px}
+.empty p{color:var(--muted);font-size:14px;margin:8px 0 18px}
+.tiles{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.tile{border:0;background:var(--surface-2);border-radius:14px;padding:14px 12px;text-align:left;display:flex;flex-direction:column;gap:8px;font-size:13px;font-weight:600}
+.tile .ic{color:var(--accent-text)}
+.privacy{display:flex;gap:8px;align-items:flex-start;justify-content:center;font-size:12px;color:var(--muted);margin:20px 8px;text-align:left}
 
-.list>div{padding:10px 0;border-top:1px solid var(--line)}
-.list>div:first-child{border-top:0}
-.kv{display:flex;justify-content:space-between;padding:3px 0;gap:12px}
-.kv b{font-variant-numeric:tabular-nums}
-.warn{background:var(--warn-bg);color:var(--warn);border-radius:12px;padding:10px 12px;font-size:13px;margin:8px 0}
-details summary{cursor:pointer;color:var(--muted);font-size:13px;margin-top:6px}
-.hint{font-size:12px;color:var(--muted);margin:6px 2px 0}
-.empty{text-align:center;padding:28px 10px}
+/* 하단 탭 */
+nav.tabs{position:fixed;left:0;right:0;bottom:0;z-index:6;padding:0 16px calc(10px + env(safe-area-inset-bottom))}
+nav.tabs .in2{max-width:488px;margin:0 auto;display:flex;background:color-mix(in srgb,var(--surface) 90%,transparent);
+  -webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);border-radius:22px;padding:6px;box-shadow:0 8px 30px -10px rgba(40,30,0,.25),0 0 0 1px var(--line)}
+nav.tabs button{flex:1;border:0;background:none;padding:6px 0;color:var(--muted);font-size:11.5px;font-weight:600;display:flex;flex-direction:column;align-items:center;gap:3px}
+nav.tabs button .pillic{width:52px;height:30px;border-radius:999px;display:grid;place-items:center;transition:background .2s}
+nav.tabs button.on{color:var(--text)}
+nav.tabs button.on .pillic{background:var(--accent);color:var(--accent-ink)}
 
-nav.tabs{position:fixed;left:0;right:0;bottom:0;z-index:6;background:var(--card);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom)}
-nav.tabs .in2{max-width:520px;margin:0 auto;display:flex}
-nav.tabs button{flex:1;border:0;background:none;padding:10px 0 12px;color:var(--muted);font-size:12px;font-weight:600;display:flex;flex-direction:column;align-items:center;gap:2px}
-nav.tabs button .i{font-size:20px;line-height:1}
-nav.tabs button.on{color:var(--accent)}
+/* 바텀시트 */
+.overlay{position:fixed;inset:0;background:rgba(20,15,0,.45);z-index:20;display:flex;align-items:flex-end;justify-content:center;animation:fade .2s}
+.sheet{background:var(--surface);width:100%;max-width:520px;border-radius:26px 26px 0 0;padding:10px 20px calc(24px + env(safe-area-inset-bottom));max-height:90vh;overflow:auto;animation:up .25s cubic-bezier(.2,.8,.2,1)}
+.grab{width:40px;height:5px;border-radius:3px;background:var(--line);margin:0 auto 14px}
+.subcard{background:var(--surface-2);border-radius:18px;padding:16px;margin-top:16px}
+.subcard .in{background:var(--surface)}
+@keyframes fade{from{opacity:0}}
+@keyframes up{from{transform:translateY(40px);opacity:.4}}
 
-.overlay{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:20;display:flex;align-items:flex-end;justify-content:center}
-.sheet{background:var(--card);width:100%;max-width:520px;border-radius:20px 20px 0 0;padding:16px 16px calc(20px + env(safe-area-inset-bottom));max-height:88vh;overflow:auto}
-.grab{width:40px;height:4px;border-radius:2px;background:var(--line);margin:0 auto 12px}
-
-#toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(84px + env(safe-area-inset-bottom));z-index:30;background:#222;color:#fff;border-radius:12px;padding:10px 14px;
-  font-size:14px;display:none;align-items:center;gap:12px;max-width:calc(100% - 32px)}
-#toast button{background:none;border:0;color:#8fb3ff;font-weight:700;white-space:nowrap;flex:none}
+#toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(96px + env(safe-area-inset-bottom));z-index:30;background:#1F1C16;color:#fff;border-radius:14px;padding:12px 16px;
+  font-size:14px;display:none;align-items:center;gap:14px;max-width:calc(100% - 32px);box-shadow:0 10px 30px -10px rgba(0,0,0,.4)}
+#toast button{background:none;border:0;color:#FFD043;font-weight:700;white-space:nowrap;flex:none;padding:0}
 </style>
 </head>
 <body>
 <div class="app">
   <header>
-    <button class="iconbtn" data-act="prevMonth" aria-label="이전 달">‹</button>
-    <button class="month" data-act="thisMonth" id="monthLabel"></button>
-    <button class="iconbtn" data-act="nextMonth" aria-label="다음 달">›</button>
+    <button class="mtitle" data-act="thisMonth" aria-label="이번 달로"><span class="y" id="yLabel"></span><span class="m" id="mLabel"></span></button>
+    <div class="navs">
+      <button class="nav-btn" data-act="prevMonth" aria-label="이전 달" data-ic="chevL"></button>
+      <button class="nav-btn" data-act="nextMonth" aria-label="다음 달" data-ic="chevR"></button>
+    </div>
   </header>
   <main id="view"></main>
 </div>
 <nav class="tabs"><div class="in2">
-  <button data-act="tab" data-tab="cal"><span class="i">📅</span>출근 달력</button>
-  <button data-act="tab" data-tab="pay"><span class="i">💰</span>이번 달 월급</button>
-  <button data-act="tab" data-tab="set"><span class="i">⚙️</span>알바·설정</button>
+  <button data-act="tab" data-tab="cal"><span class="pillic" data-ic="cal"></span>출근 달력</button>
+  <button data-act="tab" data-tab="pay"><span class="pillic" data-ic="wallet"></span>이번 달 월급</button>
+  <button data-act="tab" data-tab="set"><span class="pillic" data-ic="sliders"></span>알바·설정</button>
 </div></nav>
 <div id="sheetRoot"></div>
 <div id="toast"><span id="toastMsg"></span><button id="toastUndo">되돌리기</button></div>
@@ -124,18 +208,43 @@ nav.tabs button.on{color:var(--accent)}
 'use strict';
 // ===== 상수 =====
 const KEY = 'albaPay.v1';
-const COLORS = ['#2563eb','#16a34a','#ea580c','#9333ea','#db2777','#0891b2','#ca8a04','#64748b'];
+const COLORS = ['#F59E0B','#EF6F53','#14B8A6','#6366F1','#22C55E','#EC4899','#0EA5E9','#78716C'];
 const TYPES = ['수업 조교','채점 조교','질의응답(클리닉)','상담·행정','데스크','차량 보조','시간 강사','기타'];
 // 연도별 최저시급 (원). 새 해 금액이 정해지면 여기에 추가하면 됩니다.
 const MIN_WAGE = {2024: 9860, 2025: 10030, 2026: 10320};
 const DOW = ['일','월','화','수','목','금','토'];
+
+// ===== 아이콘 =====
+const ICONS = {
+  chevL: '<path d="M15 18l-6-6 6-6"/>',
+  chevR: '<path d="M9 18l6-6-6-6"/>',
+  cal: '<rect x="3" y="4.5" width="18" height="16.5" rx="3"/><path d="M16 2.5v4M8 2.5v4M3 10h18"/>',
+  wallet: '<rect x="2.5" y="5" width="19" height="15" rx="3"/><path d="M2.5 9.5h19M16 15h2"/>',
+  sliders: '<path d="M4 6h9M17 6h3M4 12h3M11 12h9M4 18h11M19 18h1"/><circle cx="15" cy="6" r="2"/><circle cx="9" cy="12" r="2"/><circle cx="17" cy="18" r="2"/>',
+  plus: '<path d="M12 5v14M5 12h14"/>',
+  building: '<path d="M3 21h18M5 21V7.5L12 3l7 4.5V21M10 21v-4h4v4M9 10.5h.01M15 10.5h.01M9 14h.01M15 14h.01"/>',
+  download: '<path d="M12 3v12M7 10l5 5 5-5M5 21h14"/>',
+  upload: '<path d="M12 16V4M7 9l5-5 5 5M5 21h14"/>',
+  copy: '<rect x="9" y="9" width="12" height="12" rx="2.5"/><path d="M5 15H4.5A1.5 1.5 0 0 1 3 13.5v-9A1.5 1.5 0 0 1 4.5 3h9A1.5 1.5 0 0 1 15 4.5V5"/>',
+  paste: '<rect x="5" y="4" width="14" height="17" rx="2.5"/><path d="M9 4V3h6v1M9 10h6M9 14h6M9 18h3"/>',
+  trash: '<path d="M3 6h18M8 6V4h8v2M6 6l1 15h10l1-15"/>',
+  alert: '<path d="M12 3.5l9.5 16.5h-19L12 3.5z"/><path d="M12 10v4M12 17v.01"/>',
+  lock: '<rect x="4.5" y="11" width="15" height="10" rx="2.5"/><path d="M8 11V7.5a4 4 0 0 1 8 0V11"/>',
+  x: '<path d="M6 6l12 12M18 6L6 18"/>',
+  bolt: '<path d="M13 2.5L4.5 14H11l-1 7.5L18.5 10H12l1-7.5z"/>',
+  pencil: '<path d="M4 20h4L19 9l-4-4L4 16v4zM13.5 6.5l4 4"/>',
+  receipt: '<path d="M6 2.5h12V21l-3-2-3 2-3-2-3 2V2.5z"/><path d="M9 7.5h6M9 11h6M9 14.5h4"/>',
+  chev: '<path d="M9 18l6-6-6-6"/>',
+};
+const ic = (n, s = 20) => `<svg class="ic" width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICONS[n]}</svg>`;
 
 // ===== 유틸 =====
 const $ = s => document.querySelector(s);
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const pad = n => String(n).padStart(2, '0');
 const dkey = (y, m, d) => `${y}-${pad(m + 1)}-${pad(d)}`; // m은 0부터
-const won = n => Math.round(n).toLocaleString('ko-KR') + '원';
+const num = n => Math.round(n).toLocaleString('ko-KR');
+const won = n => num(n) + '원';
 const hrs = h => (Math.round(h * 100) / 100).toLocaleString('ko-KR') + '시간';
 const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
 const toMin = t => { const [h, m] = String(t || '0:0').split(':').map(Number); return h * 60 + (m || 0); };
@@ -248,22 +357,32 @@ function calcMonth(y, m) {
 
 // ===== 화면 =====
 function render() {
-  $('#monthLabel').textContent = `${ui.y}년 ${ui.m + 1}월`;
+  $('#yLabel').textContent = `${ui.y}년`;
+  $('#mLabel').textContent = `${ui.m + 1}월`;
   document.querySelectorAll('nav.tabs button').forEach(b => b.classList.toggle('on', b.dataset.tab === ui.tab));
   $('#view').innerHTML = ui.tab === 'cal' ? viewCal() : ui.tab === 'pay' ? viewPay() : viewSet();
 }
 
 function jobLabel(j) { return `${esc(j.academy)} · ${esc(j.type)}`; }
 
+function hero(label, net, stats) {
+  return `<section class="hero">
+    <div class="hero-label">${label}</div>
+    <div class="hero-amt num">${num(net)}<span>원</span></div>
+    <div class="hero-stats">${stats.map(([k, v]) => `<div><span>${k}</span><b class="num">${v}</b></div>`).join('')}</div>
+  </section>`;
+}
+const warnBox = w => `<div class="warn">${ic('alert', 16)}<span>${esc(w)}</span></div>`;
+
 function viewCal() {
   const { y, m } = ui;
   const c = calcMonth(y, m);
   if (!state.jobs.length) {
     return `<div class="card empty">
-      <div style="font-size:40px">🧾</div>
-      <h2 style="margin-top:8px">먼저 알바를 등록해 주세요</h2>
-      <p class="muted small">학원 이름, 알바 유형, 시급, 기본 근무시간을 입력하면<br>달력에서 날짜만 눌러 출근을 기록할 수 있어요.</p>
-      <button class="btn" data-act="newJob">+ 알바 등록하기</button>
+      <div class="empty-ic">${ic('receipt', 30)}</div>
+      <h2>먼저 알바를 등록해 주세요</h2>
+      <p>학원 이름, 알바 유형, 시급, 기본 근무시간을 입력하면<br>달력에서 날짜만 눌러 출근을 기록할 수 있어요.</p>
+      <button class="btn" data-act="newJob">${ic('plus', 18)}알바 등록하기</button>
     </div>${privacyNote()}`;
   }
   if (!jobById(state.pref.selJob)) state.pref.selJob = state.jobs[0].id;
@@ -276,41 +395,36 @@ function viewCal() {
     const k = dkey(y, m, d), wd = (first + d - 1) % 7, list = shiftsOn(k);
     const byJob = {};
     for (const s of list) byJob[s.jobId] = (byJob[s.jobId] || 0) + hoursOf(s);
-    const bars = Object.entries(byJob).map(([id, h]) => {
+    const pills = Object.entries(byJob).map(([id, h]) => {
       const j = jobById(id); if (!j) return '';
-      return `<div class="bar" style="--c:${j.color}">${Math.round(h * 10) / 10}h ${esc(j.academy)}</div>`;
+      return `<i class="pill" style="--c:${j.color}">${Math.round(h * 10) / 10}h</i>`;
     }).join('');
     cells += `<button class="day ${wd === 0 ? 'sun' : wd === 6 ? 'sat' : ''} ${k === todayK ? 'today' : ''} ${list.length ? 'has' : ''}"
-      data-act="day" data-k="${k}" aria-label="${m + 1}월 ${d}일"><span class="n">${d}</span>${bars}</button>`;
+      data-act="day" data-k="${k}" aria-label="${m + 1}월 ${d}일"><span class="n">${d}</span>${pills}</button>`;
   }
   const chips = state.jobs.map(j => `<button class="chip ${j.id === sel ? 'on' : ''}" style="--c:${j.color}" data-act="selJob" data-id="${j.id}">
-    <span class="dot"></span>${jobLabel(j)}</button>`).join('') + `<button class="chip" data-act="newJob">+ 알바 추가</button>`;
+    <span class="dot"></span>${jobLabel(j)}</button>`).join('') + `<button class="chip add" data-act="newJob">${ic('plus', 16)}추가</button>`;
   return `
-  <div class="card" style="padding:12px 14px">
-    <div class="row between">
-      <div><div class="muted tiny">${m + 1}월 예상 실수령액</div><div class="big num">${won(c.net)}</div></div>
-      <div style="text-align:right" class="small muted num">세전 ${won(c.gross)}<br>${hrs(c.hours)} · ${c.days}일</div>
-    </div>
-  </div>
+  ${hero(`${m + 1}월 예상 실수령액`, c.net, [['세전', won(c.gross)], ['근무', hrs(c.hours)], ['출근', c.days + '일']])}
   <div class="seg" role="tablist">
-    <button class="${mode === 'quick' ? 'on' : ''}" data-act="mode" data-mode="quick">⚡ 빠른 체크</button>
-    <button class="${mode === 'detail' ? 'on' : ''}" data-act="mode" data-mode="detail">✏️ 시간 직접 입력</button>
+    <button class="${mode === 'quick' ? 'on' : ''}" data-act="mode" data-mode="quick">${ic('bolt', 16)}빠른 체크</button>
+    <button class="${mode === 'detail' ? 'on' : ''}" data-act="mode" data-mode="detail">${ic('pencil', 16)}시간 직접 입력</button>
   </div>
   <p class="hint">${mode === 'quick'
-    ? '아래에서 알바를 고른 뒤 날짜를 누르면 기본 근무시간으로 출근이 기록돼요. 한 번 더 누르면 지워져요.'
+    ? '알바를 고른 뒤 날짜를 누르면 기본 근무시간으로 기록돼요. 한 번 더 누르면 지워져요.'
     : '날짜를 누르면 그날의 출근·퇴근 시간과 휴게시간을 직접 입력하거나 고칠 수 있어요.'}</p>
-  ${mode === 'quick' ? `<div class="chips" style="margin-top:8px">${chips}</div>` : ''}
-  <div class="grid" style="margin-top:8px">${cells}</div>
-  ${c.warns.length ? c.warns.map(w => `<div class="warn">⚠️ ${esc(w)}</div>`).join('') : ''}`;
+  ${mode === 'quick' ? `<div class="chips">${chips}</div>` : ''}
+  <div class="cal"><div class="grid">${cells}</div></div>
+  ${c.warns.length ? `<div style="margin-top:12px">${c.warns.map(warnBox).join('')}</div>` : ''}`;
 }
 
 function viewPay() {
   const { y, m } = ui;
   const c = calcMonth(y, m);
   if (!c.rows.length) {
-    return `<div class="card empty"><div style="font-size:40px">💤</div>
-      <h2 style="margin-top:8px">${m + 1}월 근무 기록이 없어요</h2>
-      <p class="muted small">출근 달력에서 근무한 날짜를 눌러 기록해 보세요.</p>
+    return `<div class="card empty"><div class="empty-ic">${ic('cal', 30)}</div>
+      <h2>${m + 1}월 근무 기록이 없어요</h2>
+      <p>출근 달력에서 근무한 날짜를 눌러 기록해 보세요.</p>
       <button class="btn" data-act="tab" data-tab="cal">출근 달력으로</button></div>`;
   }
   // 학원별로 묶기
@@ -318,80 +432,82 @@ function viewPay() {
   for (const r of c.rows) (groups[r.job.academy] = groups[r.job.academy] || []).push(r);
   const fd = d => `${d.getMonth() + 1}/${d.getDate()}`;
   const acad = Object.entries(groups).map(([name, rows]) => {
-    const sum = rows.reduce((a, r) => ({ gross: a.gross + r.gross, net: a.net + r.net }), { gross: 0, net: 0 });
+    const sum = rows.reduce((a, r) => a + r.net, 0);
     const items = rows.map(r => {
       const j = r.job;
-      const taxLabel = j.tax === '33' ? '3.3% 원천징수' : j.tax === 'custom' ? `공제 ${j.rate}%` : '공제 없음';
-      return `<div>
-        <div class="row" style="margin-bottom:4px"><span class="dot" style="--c:${j.color}"></span><b>${esc(j.type)}</b>
-          <span class="muted small">시급 ${won(j.wage)}</span></div>
-        <div class="kv small"><span class="muted">근무</span><b>${r.days}일 · ${hrs(r.hours)}</b></div>
-        <div class="kv small"><span class="muted">기본급</span><b>${won(r.base)}</b></div>
-        ${j.weekly ? `<div class="kv small"><span class="muted">주휴수당</span><b>${won(r.holiday)}</b></div>` : ''}
-        <div class="kv small"><span class="muted">${taxLabel}</span><b>${r.ded ? '−' + won(r.ded) : '0원'}</b></div>
-        <div class="kv"><span>실수령</span><b>${won(r.net)}</b></div>
-        ${r.weeks.length ? `<details><summary>주별 근무시간${j.weekly ? ' · 주휴수당 내역' : ''}</summary>
-          ${r.weeks.map(w => `<div class="kv tiny"><span class="muted">${fd(w.from)}~${fd(w.to)}</span>
-            <span class="num">${hrs(w.h)}${j.weekly ? ` · ${w.h >= 15 ? won(w.p) : '15시간 미만'}` : ''}</span></div>`).join('')}
+      const taxLabel = j.tax === '33' ? '3.3% 원천징수' : j.tax === 'custom' ? `공제 ${j.rate}%` : '공제';
+      return `<div class="item">
+        <div class="job-head"><span class="dot" style="--c:${j.color}"></span><b>${esc(j.type)}</b><span class="tag num">시급 ${won(j.wage)}</span></div>
+        <div class="kv"><span>근무</span><b>${r.days}일 · ${hrs(r.hours)}</b></div>
+        <div class="kv"><span>기본급</span><b>${won(r.base)}</b></div>
+        ${j.weekly ? `<div class="kv"><span>주휴수당</span><b>${won(r.holiday)}</b></div>` : ''}
+        <div class="kv"><span>${taxLabel}</span><b>${r.ded ? '−' + won(r.ded) : '0원'}</b></div>
+        <div class="kv total"><span>실수령</span><b>${won(r.net)}</b></div>
+        ${r.weeks.length ? `<details><summary>주별 근무시간${j.weekly ? ' · 주휴수당' : ''}</summary>
+          ${r.weeks.map(w => `<div class="kv tiny"><span>${fd(w.from)} ~ ${fd(w.to)}</span>
+            <b>${hrs(w.h)}${j.weekly ? ` · ${w.h >= 15 ? won(w.p) : '15시간 미만'}` : ''}</b></div>`).join('')}
         </details>` : ''}
       </div>`;
     }).join('');
     return `<div class="card">
-      <div class="row between"><h3>🏫 ${esc(name)}</h3><span class="small num"><b>${won(sum.net)}</b></span></div>
-      <div class="list" style="margin-top:8px">${items}</div></div>`;
+      <div class="card-head">
+        <div class="row"><div class="swatch" style="--c:${rows[0].job.color}">${ic('building', 18)}</div><h3>${esc(name)}</h3></div>
+        <b class="num">${won(sum)}</b></div>
+      <div class="list">${items}</div></div>`;
   }).join('');
   return `
+  ${hero(`${y}년 ${m + 1}월 예상 실수령액`, c.net, [['세전', won(c.gross)], ['공제', c.ded ? '−' + won(c.ded) : '0원'], ['근무', hrs(c.hours)]])}
+  ${c.warns.map(warnBox).join('')}
   <div class="card">
-    <div class="muted small">${y}년 ${m + 1}월 예상 실수령액</div>
-    <div class="big num" style="margin:2px 0 10px">${won(c.net)}</div>
-    <div class="kv small"><span class="muted">총 근무</span><b>${c.days}일 · ${hrs(c.hours)}</b></div>
-    <div class="kv small"><span class="muted">기본급 합계</span><b>${won(c.base)}</b></div>
-    <div class="kv small"><span class="muted">주휴수당 합계</span><b>${won(c.holiday)}</b></div>
-    <div class="kv small"><span class="muted">세전 합계</span><b>${won(c.gross)}</b></div>
-    <div class="kv small"><span class="muted">공제 합계</span><b>${c.ded ? '−' + won(c.ded) : '0원'}</b></div>
+    <div class="card-head"><h2>이번 달 합계</h2></div>
+    <div class="kv"><span>출근일</span><b>${c.days}일</b></div>
+    <div class="kv"><span>총 근무시간</span><b>${hrs(c.hours)}</b></div>
+    <div class="kv"><span>기본급</span><b>${won(c.base)}</b></div>
+    <div class="kv"><span>주휴수당</span><b>${won(c.holiday)}</b></div>
+    <div class="kv"><span>공제</span><b>${c.ded ? '−' + won(c.ded) : '0원'}</b></div>
+    <div class="kv total"><span>실수령액</span><b>${won(c.net)}</b></div>
   </div>
-  ${c.warns.map(w => `<div class="warn">⚠️ ${esc(w)}</div>`).join('')}
   ${acad}
-  <p class="hint">· 주휴수당은 월~일 한 주에 15시간 이상 일한 경우, (주 근무시간 ÷ 40) × 8시간 × 시급으로 계산해요(최대 8시간분). 그 주의 일요일이 속한 달에 포함돼요.<br>
+  <p class="notes">· 주휴수당은 월~일 한 주에 15시간 이상 일한 경우, (주 근무시간 ÷ 40) × 8시간 × 시급으로 계산해요(최대 8시간분). 그 주의 일요일이 속한 달에 포함돼요.<br>
   · 3.3%는 소득세 3%와 지방소득세 0.3%를 각각 10원 미만 버림으로 계산해요.<br>
   · 실제 지급액은 학원의 정산 방식에 따라 다를 수 있어요.</p>`;
 }
 
 function viewSet() {
   const mw = minWage(ui.y);
-  const jobs = state.jobs.length ? state.jobs.map(j => `<div class="row">
-      <span class="dot" style="--c:${j.color}"></span>
+  const jobs = state.jobs.length ? state.jobs.map(j => `<div class="item tap row" data-act="editJob" data-id="${j.id}">
+      <div class="swatch" style="--c:${j.color}"><i></i></div>
       <div class="grow"><b>${jobLabel(j)}</b>
-        <div class="muted small num">시급 ${won(j.wage)} · ${esc(j.start)}~${esc(j.end)}${+j.brk ? ` (휴게 ${j.brk}분)` : ''}
-        · ${j.weekly ? '주휴 O' : '주휴 X'} · ${j.tax === '33' ? '3.3%' : j.tax === 'custom' ? j.rate + '%' : '공제 없음'}</div>
-        ${j.wage < mw.wage ? `<div class="tiny" style="color:var(--warn)">⚠️ ${mw.year}년 최저시급(${won(mw.wage)}) 미만</div>` : ''}
+        <div class="muted small num">시급 ${won(j.wage)} · ${esc(j.start)}~${esc(j.end)}${+j.brk ? ` · 휴게 ${j.brk}분` : ''}</div>
+        <div class="muted tiny">${j.weekly ? '주휴수당 O' : '주휴수당 X'} · ${j.tax === '33' ? '3.3% 공제' : j.tax === 'custom' ? j.rate + '% 공제' : '공제 없음'}</div>
+        ${j.wage < mw.wage ? `<div class="tiny" style="color:var(--warn);font-weight:600">${mw.year}년 최저시급(${won(mw.wage)}) 미만</div>` : ''}
       </div>
-      <button class="btn line sm" data-act="editJob" data-id="${j.id}">수정</button>
+      <span class="muted">${ic('chev', 18)}</span>
     </div>`).join('') : `<div class="muted small">등록된 알바가 없어요.</div>`;
   return `
   <div class="card">
-    <div class="row between"><h2 style="margin:0">내 알바</h2><button class="btn ghost sm" data-act="newJob">+ 추가</button></div>
-    <div class="list" style="margin-top:8px">${jobs}</div>
+    <div class="card-head"><h2>내 알바</h2><button class="btn soft sm" data-act="newJob">${ic('plus', 16)}추가</button></div>
+    <div class="list">${jobs}</div>
   </div>
   <div class="card">
-    <h2>백업 · 복원</h2>
-    <p class="muted small" style="margin-top:0">기록은 이 기기의 브라우저에만 저장돼요. 폰을 바꾸거나 브라우저 데이터를 지우기 전에 꼭 백업해 두세요.</p>
-    <div class="row wrap">
-      <button class="btn ghost sm" data-act="exportFile">📤 백업 파일 저장</button>
-      <button class="btn ghost sm" data-act="exportCopy">📋 백업 코드 복사</button>
-      <button class="btn line sm" data-act="importFile">📥 파일에서 복원</button>
-      <button class="btn line sm" data-act="importPaste">📥 코드로 복원</button>
+    <div class="card-head"><h2>백업 · 복원</h2></div>
+    <p class="muted small" style="margin:-4px 0 12px">기록은 이 기기의 브라우저에만 저장돼요. 폰을 바꾸거나 브라우저 데이터를 지우기 전에 꼭 백업해 두세요.</p>
+    <div class="tiles">
+      <button class="tile" data-act="exportFile">${ic('download')}백업 파일 저장</button>
+      <button class="tile" data-act="exportCopy">${ic('copy')}백업 코드 복사</button>
+      <button class="tile" data-act="importFile">${ic('upload')}파일에서 복원</button>
+      <button class="tile" data-act="importPaste">${ic('paste')}코드로 복원</button>
     </div>
   </div>
-  <div class="card">
-    <h2>데이터 삭제</h2>
-    <button class="btn danger sm" data-act="wipe">이 기기의 모든 기록 삭제</button>
+  <div class="card row between">
+    <div><h3>데이터 삭제</h3><div class="muted small">이 기기의 모든 기록을 지워요</div></div>
+    <button class="btn danger sm" data-act="wipe">${ic('trash', 16)}삭제</button>
   </div>
   ${privacyNote()}`;
 }
 
 function privacyNote() {
-  return `<p class="hint" style="text-align:center;margin:16px 0">🔒 입력한 정보는 서버로 전송되지 않고 이 기기에만 저장돼요.<br>같은 앱을 쓰는 다른 사람은 내 기록을 볼 수 없어요.</p>`;
+  return `<div class="privacy">${ic('lock', 15)}<span>입력한 정보는 서버로 전송되지 않고 이 기기에만 저장돼요.<br>같은 앱을 쓰는 다른 사람은 내 기록을 볼 수 없어요.</span></div>`;
 }
 
 // ===== 바텀시트 =====
@@ -399,6 +515,7 @@ function openSheet(html) {
   $('#sheetRoot').innerHTML = `<div class="overlay" data-act="closeOverlay"><div class="sheet" role="dialog" aria-modal="true"><div class="grab"></div>${html}</div></div>`;
 }
 function closeSheet() { $('#sheetRoot').innerHTML = ''; ui.editShift = null; ui.editJob = null; }
+const sheetHead = title => `<div class="row between" style="margin-bottom:6px"><h2>${title}</h2><button class="close-btn" data-act="close" aria-label="닫기">${ic('x', 18)}</button></div>`;
 
 function dayLabel(k) {
   const [y, m, d] = k.split('-').map(Number);
@@ -413,20 +530,20 @@ function sheetDay(k) {
   const items = list.length ? list.map(s => {
     const j = jobById(s.jobId); if (!j) return '';
     const h = hoursOf(s);
-    return `<div class="row">
-      <span class="dot" style="--c:${j.color}"></span>
+    return `<div class="item row">
+      <div class="swatch" style="--c:${j.color}"><i></i></div>
       <div class="grow"><b>${jobLabel(j)}</b>
         <div class="muted small num">${esc(s.start)}~${esc(s.end)}${+s.brk ? ` · 휴게 ${s.brk}분` : ''} · ${hrs(h)} · ${won(h * wageOf(s))}</div></div>
       <button class="btn line sm" data-act="editShift" data-k="${k}" data-id="${s.id}">수정</button>
-      <button class="btn danger sm" data-act="delShift" data-k="${k}" data-id="${s.id}">삭제</button>
+      <button class="btn danger sm" data-act="delShift" data-k="${k}" data-id="${s.id}" aria-label="삭제">${ic('trash', 16)}</button>
     </div>`;
   }).join('') : `<div class="muted small">아직 기록이 없어요.</div>`;
   const opts = state.jobs.map(j => `<option value="${j.id}" ${j.id === v.jobId ? 'selected' : ''}>${jobLabel(j)}</option>`).join('');
   openSheet(`
-    <div class="row between"><h3>${dayLabel(k)}</h3><button class="btn line sm" data-act="close">닫기</button></div>
+    ${sheetHead(dayLabel(k))}
     <div class="list" style="margin-top:10px">${items}</div>
-    <div class="card" style="margin-bottom:0;background:var(--bg)">
-      <b>${ed ? '근무 수정' : '근무 추가'}</b>
+    <div class="subcard">
+      <h3>${ed ? '근무 수정' : '근무 추가'}</h3>
       <label class="f"><span>알바</span><select class="in" id="fJob">${opts}</select></label>
       <div class="row">
         <label class="f grow"><span>출근</span><input class="in" type="time" id="fStart" value="${esc(v.start)}"></label>
@@ -434,9 +551,9 @@ function sheetDay(k) {
       </div>
       <label class="f"><span>휴게시간 (분)</span><input class="in" type="number" inputmode="numeric" min="0" step="5" id="fBrk" value="${+v.brk || 0}"></label>
       <p class="hint">퇴근 시간이 출근보다 빠르면 다음 날 퇴근으로 계산해요.</p>
-      <div class="row" style="margin-top:10px">
+      <div class="row" style="margin-top:14px">
         ${ed ? `<button class="btn line" data-act="cancelEdit" data-k="${k}">취소</button>` : ''}
-        <button class="btn grow" data-act="saveShift" data-k="${k}">${ed ? '수정 저장' : '추가'}</button>
+        <button class="btn grow" data-act="saveShift" data-k="${k}">${ed ? '수정 저장' : '추가하기'}</button>
       </div>
     </div>`);
 }
@@ -449,20 +566,20 @@ function sheetJob(id) {
   ui.jobColor = v.color;
   const acads = [...new Set(state.jobs.map(x => x.academy))];
   openSheet(`
-    <div class="row between"><h3>${j ? '알바 수정' : '알바 등록'}</h3><button class="btn line sm" data-act="close">닫기</button></div>
+    ${sheetHead(j ? '알바 수정' : '알바 등록')}
     <label class="f"><span>학원 이름</span><input class="in" id="jAcad" list="acadList" placeholder="예: 해법수학 ○○점" value="${esc(v.academy)}"></label>
     <datalist id="acadList">${acads.map(a => `<option value="${esc(a)}">`).join('')}</datalist>
     <label class="f"><span>알바 유형</span><input class="in" id="jType" list="typeList" placeholder="골라도 되고 직접 써도 돼요" value="${esc(v.type)}"></label>
     <datalist id="typeList">${TYPES.map(t => `<option value="${t}">`).join('')}</datalist>
-    <label class="f"><span>시급 (원)</span><input class="in" id="jWage" type="number" inputmode="numeric" min="0" step="10" value="${+v.wage || ''}"></label>
-    <p class="hint">${minWage(ui.y).year}년 최저시급: ${won(minWage(ui.y).wage)}</p>
+    <label class="f"><span>시급 (원)</span><input class="in num" id="jWage" type="number" inputmode="numeric" min="0" step="10" value="${+v.wage || ''}"></label>
+    <p class="hint">${minWage(ui.y).year}년 최저시급 ${won(minWage(ui.y).wage)}</p>
     <div class="row">
       <label class="f grow"><span>기본 출근</span><input class="in" type="time" id="jStart" value="${esc(v.start)}"></label>
       <label class="f grow"><span>기본 퇴근</span><input class="in" type="time" id="jEnd" value="${esc(v.end)}"></label>
     </div>
     <label class="f"><span>기본 휴게시간 (분)</span><input class="in" id="jBrk" type="number" inputmode="numeric" min="0" step="5" value="${+v.brk || 0}"></label>
-    <label class="check"><input type="checkbox" id="jWeekly" ${v.weekly ? 'checked' : ''}>
-      <span><b>주휴수당 계산</b><br><span class="muted small">한 주(월~일)에 15시간 이상 일하면 주휴수당을 더해요.</span></span></label>
+    <label class="toggle-row"><span><b>주휴수당 계산</b><br><span class="muted small">한 주(월~일)에 15시간 이상 일하면 더해요</span></span>
+      <input type="checkbox" class="switch" id="jWeekly" ${v.weekly ? 'checked' : ''}></label>
     <label class="f"><span>공제</span>
       <select class="in" id="jTax">
         <option value="none" ${v.tax === 'none' ? 'selected' : ''}>공제 없음</option>
@@ -473,8 +590,8 @@ function sheetJob(id) {
       <input class="in" id="jRate" type="number" inputmode="decimal" min="0" max="100" step="0.01" value="${+v.rate || ''}"></label>
     <label class="f"><span>색상</span></label>
     <div class="colors" id="jColors">${COLORS.map(c => `<button type="button" style="--c:${c}" class="${c === v.color ? 'on' : ''}" data-act="pickColor" data-c="${c}" aria-label="색상"></button>`).join('')}</div>
-    <button class="btn full" style="margin-top:16px" data-act="saveJob">저장</button>
-    ${j ? `<button class="btn danger full" style="margin-top:8px" data-act="delJob" data-id="${j.id}">이 알바 삭제</button>` : ''}`);
+    <button class="btn full" style="margin-top:22px" data-act="saveJob">저장하기</button>
+    ${j ? `<button class="btn danger full" style="margin-top:8px" data-act="delJob" data-id="${j.id}">${ic('trash', 16)}이 알바 삭제</button>` : ''}`);
 }
 
 // ===== 토스트 =====
@@ -593,18 +710,18 @@ const ACT = {
   },
   exportCopy: async () => {
     const txt = JSON.stringify(state);
-    try { await navigator.clipboard.writeText(txt); toast('백업 코드를 복사했어요. 메모장이나 나에게 보내기에 붙여넣어 보관하세요'); }
+    try { await navigator.clipboard.writeText(txt); toast('백업 코드를 복사했어요. 메모장 등에 붙여넣어 보관하세요'); }
     catch (e) {
-      openSheet(`<h3>백업 코드</h3><p class="muted small">아래 글자를 모두 복사해서 보관하세요.</p>
-        <textarea class="in" style="height:200px;padding:10px" readonly>${esc(txt)}</textarea>
-        <button class="btn full" style="margin-top:10px" data-act="close">닫기</button>`);
+      openSheet(`${sheetHead('백업 코드')}<p class="muted small">아래 글자를 모두 복사해서 보관하세요.</p>
+        <textarea class="in" style="height:200px" readonly>${esc(txt)}</textarea>
+        <button class="btn full" style="margin-top:12px" data-act="close">닫기</button>`);
     }
   },
   importFile: () => $('#importFile').click(),
-  importPaste: () => openSheet(`<h3>코드로 복원</h3><p class="muted small">보관해 둔 백업 코드를 붙여넣으세요. 지금 기록은 백업 내용으로 바뀌어요.</p>
-    <textarea class="in" id="pasteBox" style="height:180px;padding:10px"></textarea>
-    <div class="row" style="margin-top:10px"><button class="btn line" data-act="close">취소</button>
-    <button class="btn grow" data-act="doPaste">복원</button></div>`),
+  importPaste: () => openSheet(`${sheetHead('코드로 복원')}<p class="muted small">보관해 둔 백업 코드를 붙여넣으세요. 지금 기록은 백업 내용으로 바뀌어요.</p>
+    <textarea class="in" id="pasteBox" style="height:180px"></textarea>
+    <div class="row" style="margin-top:12px"><button class="btn line" data-act="close">취소</button>
+    <button class="btn grow" data-act="doPaste">복원하기</button></div>`),
   doPaste: () => restore($('#pasteBox').value),
   wipe: () => {
     if (!confirm('이 기기에 저장된 모든 알바와 근무 기록을 삭제할까요?\n삭제 전에 백업을 권장해요.')) return;
@@ -642,6 +759,7 @@ document.addEventListener('change', e => {
 });
 document.addEventListener('keydown', e => { if (e.key === 'Escape') closeSheet(); });
 
+document.querySelectorAll('[data-ic]').forEach(el => { el.innerHTML = ic(el.dataset.ic); });
 render();
 // 브라우저가 저장공간을 임의로 지우지 않도록 요청
 if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(() => {});
