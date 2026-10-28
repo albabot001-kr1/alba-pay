@@ -177,19 +177,42 @@ details[open]{padding-bottom:8px}
 .privacy{display:flex;gap:8px;align-items:flex-start;justify-content:center;font-size:12px;color:var(--muted);margin:20px 8px;text-align:left}
 
 /* 출근부 · 진행도 */
-.trek-card{padding:18px 16px 14px}
+.trek-card{padding:18px 16px 14px;overflow:hidden}
 .trek-top{display:flex;justify-content:space-between;align-items:flex-end;gap:12px}
 .trek-count{font-size:28px;font-weight:800;letter-spacing:-.03em;line-height:1.1}
 .trek-count small{font-size:16px;font-weight:700;color:var(--muted);margin-left:2px}
-.trek{--p:0;--dur:1.5s;position:relative;height:92px;margin-top:6px}
+.trek{--p:0;--dur:1.5s;position:relative;height:108px;margin-top:6px}
 .trek .track{position:absolute;left:0;right:0;bottom:8px;height:12px;border-radius:999px;background:var(--surface-2);overflow:hidden}
 .trek .fill{height:100%;width:calc(30px + (100% - 60px) * var(--p));border-radius:inherit;
   background:repeating-linear-gradient(-45deg,var(--accent) 0 8px,var(--accent-strong) 8px 16px);transition:width var(--dur) linear}
-.trek .goal{position:absolute;right:0;bottom:22px;color:var(--accent-text)}
+.mark{position:absolute;bottom:1px;transform:translateX(-50%);width:26px;height:26px;border-radius:50%;background:var(--surface);box-shadow:0 0 0 2px var(--line);display:grid;place-items:center;z-index:0;transition:box-shadow .3s,background .3s}
+.mark svg{width:16px;height:16px;shape-rendering:crispEdges;opacity:.35;filter:grayscale(1);transition:opacity .3s,filter .3s}
+.mark.got{box-shadow:0 0 0 2px var(--accent-strong);background:var(--accent-soft)}
+.mark.got svg{opacity:1;filter:none}
 .trek .duck-wrap{position:absolute;bottom:14px;left:calc(30px + (100% - 60px) * var(--p));width:60px;margin-left:-30px;transition:left var(--dur) linear;z-index:1}
 .trek .duck-wrap::after{content:"";position:absolute;left:14px;right:14px;bottom:-3px;height:6px;border-radius:50%;background:rgba(0,0,0,.18);filter:blur(1px)}
-.duck-body{transform-origin:50% 100%}
-.duck-body img{display:block;width:60px;height:auto;transform:scaleX(-1)}
+.duck-body{position:relative;width:60px;aspect-ratio:113/128;transform-origin:50% 100%}
+.duck-body img{position:absolute;inset:0;width:100%;height:100%;transform:scaleX(-1);z-index:2}
+.duck-body svg{position:absolute;shape-rendering:crispEdges;overflow:visible;display:none;animation:gearIn .5s ease-out}
+@keyframes gearIn{0%{opacity:0;filter:brightness(2.5)}100%{opacity:1;filter:none}}
+.it-cape{z-index:1;left:4%;top:38%;width:86%}
+.it-can{z-index:3;left:80%;top:58%;width:46%}
+.it-drops{z-index:3;left:123%;top:64%;width:20%}
+.duck-body.g100 .it-drops{animation:drip 1s steps(4) infinite}
+@keyframes drip{from{transform:translateY(-6%);opacity:1}to{transform:translateY(22%);opacity:.3}}
+.it-sword{z-index:3;left:1%;top:31%;width:18%;transform:rotate(-24deg);transform-origin:50% 82%}
+.it-bow{z-index:3;left:46%;top:54%;width:26%}
+.it-cap{z-index:4;left:25%;top:-3%;width:62%;transform:rotate(-7deg);transform-origin:50% 100%}
+.it-crown{z-index:4;left:35%;top:-8%;width:42%;transform:rotate(-4deg);transform-origin:50% 100%}
+.it-spark{z-index:5;width:16%}
+.spark1{left:-8%;top:6%} .spark2{left:92%;top:2%} .spark3{left:-14%;top:44%}
+.duck-body.g100 .it-spark{animation:twinkle 1.2s ease-in-out infinite}
+.duck-body.g100 .spark2{animation-delay:.4s} .duck-body.g100 .spark3{animation-delay:.8s}
+@keyframes twinkle{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.3;transform:scale(.6)}}
+/* 진행도 단계별 착용: 20 물뿌리개, 40 검, 60 나비넥타이, 80 학사모, 100 왕관·망토 */
+.duck-body.g20 .it-can,.duck-body.g40 .it-sword,.duck-body.g60 .it-bow,.duck-body.g80 .it-cap{display:block}
+.duck-body.g100 .it-cap{display:none}
+.duck-body.g100 .it-crown,.duck-body.g100 .it-cape,.duck-body.g100 .it-drops,.duck-body.g100 .it-spark{display:block}
 .duck-body.walking{animation:waddle .36s ease-in-out infinite alternate}
 .duck-body.idle{animation:breathe 2.4s ease-in-out infinite}
 .duck-body.cheer{animation:hop .5s ease-out 3,breathe 2.4s ease-in-out 1.5s infinite}
@@ -253,6 +276,19 @@ nav.tabs button.on .pillic{background:var(--accent);color:var(--accent-ink)}
   <button data-act="tab" data-tab="pay"><span class="pillic" data-ic="wallet"></span>월급</button>
   <button data-act="tab" data-tab="set"><span class="pillic" data-ic="sliders"></span>설정</button>
 </div></nav>
+<!-- 출근 진행도에 따라 고라파덕이 착용하는 아이템 (직접 그린 도트 그림) -->
+<template id="gearT">
+    <svg class="it-cape" viewBox="0 0 30 22"><path fill="#B3261E" d="M2 0h26v2h1v4h-1v6h1v4h1v6H0v-6h1v-4h1V6H1V2h1z"/><path fill="#E0453A" d="M4 2h22v4h-1v8h1v4h2v2H2v-2h2v-4h1V6H4z"/><path fill="#FFC629" d="M3 0h24v2H3z"/></svg>
+    <svg class="it-can" viewBox="0 0 22 15"><g fill="#1D4E6B"><rect x="3" y="1" width="6" height="1"/><rect x="2" y="2" width="1" height="3"/><rect x="9" y="2" width="1" height="3"/><rect x="1" y="5" width="11" height="1"/><rect x="1" y="6" width="1" height="8"/><rect x="11" y="6" width="1" height="8"/><rect x="1" y="14" width="11" height="1"/><rect x="12" y="10" width="2" height="1"/><rect x="14" y="8" width="2" height="1"/><rect x="16" y="6" width="2" height="1"/><rect x="18" y="2" width="1" height="6"/><rect x="19" y="1" width="2" height="1"/><rect x="21" y="2" width="1" height="5"/><rect x="19" y="7" width="2" height="1"/></g><rect x="2" y="6" width="9" height="8" fill="#3BA3D9"/><rect x="2" y="6" width="9" height="2" fill="#7CCBF0"/><rect x="3" y="9" width="2" height="4" fill="#5BB8E6"/><rect x="12" y="11" width="2" height="2" fill="#3BA3D9"/><rect x="14" y="9" width="2" height="2" fill="#3BA3D9"/><rect x="16" y="7" width="2" height="2" fill="#3BA3D9"/><rect x="19" y="2" width="2" height="5" fill="#9AD8F5"/><rect x="20" y="3" width="1" height="1" fill="#1D4E6B"/><rect x="20" y="5" width="1" height="1" fill="#1D4E6B"/></svg>
+    <svg class="it-drops" viewBox="0 0 12 14"><g fill="#4FB3E8"><rect x="2" y="0" width="1" height="2"/><rect x="6" y="2" width="1" height="2"/><rect x="10" y="1" width="1" height="2"/><rect x="3" y="5" width="1" height="2"/><rect x="8" y="6" width="1" height="2"/><rect x="1" y="9" width="1" height="2"/><rect x="5" y="10" width="1" height="2"/><rect x="10" y="9" width="1" height="2"/><rect x="7" y="12" width="1" height="2"/></g></svg>
+    <svg class="it-sword" viewBox="0 0 9 23"><rect x="4" y="0" width="1" height="1" fill="#3A3F4A"/><rect x="3" y="1" width="3" height="1" fill="#3A3F4A"/><rect x="4" y="1" width="1" height="1" fill="#CFD8E3"/><rect x="2" y="2" width="5" height="12" fill="#3A3F4A"/><rect x="3" y="2" width="3" height="12" fill="#CFD8E3"/><rect x="3" y="2" width="1" height="12" fill="#F4F7FB"/><rect x="4" y="3" width="1" height="10" fill="#9AA8B8"/><rect x="0" y="14" width="9" height="2" fill="#8A5A00"/><rect x="1" y="14" width="7" height="1" fill="#FFC629"/><rect x="4" y="14" width="1" height="1" fill="#E0453A"/><rect x="3" y="16" width="3" height="5" fill="#5A3414"/><rect x="3" y="17" width="3" height="1" fill="#8A5A2A"/><rect x="3" y="19" width="3" height="1" fill="#8A5A2A"/><rect x="2" y="21" width="5" height="2" fill="#8A5A00"/><rect x="3" y="21" width="3" height="1" fill="#FFC629"/></svg>
+    <svg class="it-bow" viewBox="0 0 16 8"><path fill="#7A1010" d="M0 0h2v1h2v1h2v1h4V2h2V1h2V0h2v8h-2V7h-2V6h-2V5H6v1H4v1H2v1H0z"/><path fill="#D7262B" d="M1 1h1v1h2v1h2v2H4v1H2v1H1zM15 1h-1v1h-2v1h-2v2h2v1h2v1h1z"/><rect x="6" y="2" width="4" height="4" fill="#A3141A"/><rect x="7" y="3" width="2" height="1" fill="#F15A5F"/></svg>
+    <svg class="it-cap" viewBox="0 0 30 16"><polygon points="15,0 30,5 15,10 0,5" fill="#1E1B22"/><polygon points="15,1 27,5 15,9 3,5" fill="#2E2A35"/><rect x="7" y="7" width="16" height="6" fill="#1E1B22"/><rect x="8" y="8" width="14" height="4" fill="#2E2A35"/><rect x="14" y="4" width="2" height="2" fill="#FFC629"/><rect x="24" y="5" width="1" height="7" fill="#FFC629"/><rect x="23" y="12" width="3" height="3" fill="#FFC629"/><rect x="23" y="12" width="3" height="1" fill="#E0A800"/></svg>
+    <svg class="it-crown" viewBox="0 0 22 14"><path fill="#8A5A00" d="M0 2h3v3h2V1h3v4h2V0h2v5h2V1h3v4h2V2h3v12H0z"/><path fill="#FFC629" d="M1 3h1v3h4V2h1v4h4V1h0v5h4V2h1v4h4V3h1v10H1z"/><rect x="1" y="10" width="20" height="2" fill="#F2B200"/><rect x="4" y="7" width="2" height="2" fill="#E0453A"/><rect x="10" y="6" width="2" height="2" fill="#2F7BEA"/><rect x="16" y="7" width="2" height="2" fill="#22C55E"/><rect x="2" y="4" width="1" height="1" fill="#FFF3B0"/><rect x="11" y="2" width="1" height="1" fill="#FFF3B0"/></svg>
+    <svg class="it-spark spark1" viewBox="0 0 7 7"><path fill="#FFD43B" d="M3 0h1v2h1v1h2v1H5v1H4v2H3V5H2V4H0V3h2V2h1z"/><rect x="3" y="3" width="1" height="1" fill="#fff"/></svg>
+    <svg class="it-spark spark2" viewBox="0 0 7 7"><path fill="#FFD43B" d="M3 0h1v2h1v1h2v1H5v1H4v2H3V5H2V4H0V3h2V2h1z"/><rect x="3" y="3" width="1" height="1" fill="#fff"/></svg>
+    <svg class="it-spark spark3" viewBox="0 0 7 7"><path fill="#FFD43B" d="M3 0h1v2h1v1h2v1H5v1H4v2H3V5H2V4H0V3h2V2h1z"/><rect x="3" y="3" width="1" height="1" fill="#fff"/></svg>
+</template>
 <div id="sheetRoot"></div>
 <div id="toast"><span id="toastMsg"></span><button id="toastUndo">되돌리기</button></div>
 <input type="file" id="importFile" accept="application/json,.json" hidden>
@@ -447,18 +483,43 @@ function monthProgress(y, m) {
   return { done, total, goal, custom: !!(state.pref.goals || {})[`${y}-${pad(m + 1)}`], p: goal ? Math.min(1, done / goal) : 0 };
 }
 
-// 고라파덕이 0에서 현재 진행도까지 걸어가요
-let duckTimer;
+// 진행도 20%마다 얻는 아이템. 한 번 얻으면 계속 착용해요.
+const GEAR = [
+  { p: 20, name: '물뿌리개', obj: '물뿌리개를', icon: 'it-can' },
+  { p: 40, name: '용사의 검', obj: '용사의 검을', icon: 'it-sword' },
+  { p: 60, name: '나비넥타이', obj: '나비넥타이를', icon: 'it-bow' },
+  { p: 80, name: '학사모', obj: '학사모를', icon: 'it-cap' },
+  { p: 100, name: '왕관과 망토', obj: '왕관과 망토를', icon: 'it-crown' },
+];
+const gearT = document.getElementById('gearT');
+const gearIcon = cls => gearT.content.querySelector('.' + cls).outerHTML.replace(/ class="[^"]*"/, '');
+const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)');
+
+// 고라파덕이 0에서 현재 진행도까지 걸어가며, 아이템 지점을 지날 때마다 장착해요
+let duckTimers = [];
 function walkDuck() {
   const t = $('.trek'); if (!t) return;
   const p = +t.dataset.p, body = t.querySelector('.duck-body');
   const dur = 0.4 + 2.2 * p;
+  const reached = GEAR.filter(g => p * 100 >= g.p);
+  const equip = g => { body.classList.add('g' + g.p); t.querySelector(`.mark[data-p="${g.p}"]`).classList.add('got'); };
+  const arrive = () => {
+    body.classList.remove('walking'); body.classList.add(p >= 1 ? 'cheer' : 'idle');
+    // 이번 달에 처음 얻은 단계면 한 번만 알려줘요
+    const top = reached[reached.length - 1], key = `${ui.y}-${pad(ui.m + 1)}`;
+    state.pref.gear = state.pref.gear || {};
+    if (top && top.p > (state.pref.gear[key] || 0)) {
+      state.pref.gear[key] = top.p; save();
+      toast(top.p === 100 ? '알바왕 달성! 왕관과 망토를 착용했어요' : `새 아이템 획득! ${top.obj} 착용했어요`);
+    }
+  };
   t.style.setProperty('--dur', dur + 's');
-  clearTimeout(duckTimer);
-  if (p <= 0) { body.className = 'duck-body idle'; return; }
-  body.className = 'duck-body walking';
+  duckTimers.forEach(clearTimeout); duckTimers = [];
+  if (p <= 0 || reduceMotion.matches) { t.style.setProperty('--p', p); reached.forEach(equip); arrive(); return; }
+  body.classList.add('walking');
   requestAnimationFrame(() => requestAnimationFrame(() => t.style.setProperty('--p', p)));
-  duckTimer = setTimeout(() => { body.className = 'duck-body ' + (p >= 1 ? 'cheer' : 'idle'); }, dur * 1000);
+  for (const g of reached) duckTimers.push(setTimeout(() => equip(g), dur * 1000 * (g.p / 100) / p));
+  duckTimers.push(setTimeout(arrive, dur * 1000));
 }
 
 const myName = () => (state.pref.name || '').trim();
@@ -579,10 +640,10 @@ function viewLog() {
   const last = new Date(y, m + 1, 0).getDate();
   const t = new Date(), todayK = dkey(t.getFullYear(), t.getMonth(), t.getDate());
   const pr = monthProgress(y, m);
-  const left = Math.max(0, pr.goal - pr.done);
+  const next = GEAR.find(g => pr.p * 100 < g.p);
   const msg = !pr.goal ? '출근을 기록하면 고라파덕이 걸어가요'
-    : pr.p >= 1 ? '이번 달 목표 달성! 수고했어요'
-    : `목표까지 ${left}일 남았어요`;
+    : !next ? '이번 달 목표 달성! 알바왕이 됐어요'
+    : `다음 아이템(${next.name})까지 ${Math.max(1, Math.ceil(pr.goal * next.p / 100) - pr.done)}일`;
   const trek = `<div class="card trek-card">
     <div class="trek-top">
       <div><div class="muted small" style="font-weight:600">${m + 1}월 출근 진행도</div>
@@ -591,8 +652,8 @@ function viewLog() {
     </div>
     <div class="trek" data-p="${pr.p}">
       <div class="track"><div class="fill"></div></div>
-      <span class="goal">${ic('flag', 22)}</span>
-      <div class="duck-wrap"><div class="duck-body"><img src="duck.png" alt="걸어가는 고라파덕"></div></div>
+      ${GEAR.map(g => `<div class="mark" data-p="${g.p}" style="left:calc(30px + (100% - 60px) * ${g.p / 100})" title="${g.p}% ${g.name}">${gearIcon(g.icon)}</div>`).join('')}
+      <div class="duck-wrap"><div class="duck-body">${gearT.innerHTML}<img src="duck.png" alt="걸어가는 고라파덕"></div></div>
     </div>
     <div class="trek-foot"><span>${msg}</span><span class="num">${Math.round(pr.p * 100)}%</span></div>
   </div>`;
