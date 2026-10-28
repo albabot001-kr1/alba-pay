@@ -1,6 +1,6 @@
 // 앱 파일을 기기에 저장해 두어 오프라인에서도 열리게 합니다.
 // 앱을 수정해서 다시 올릴 때는 아래 버전 숫자를 올려 주세요.
-const CACHE = 'alba-pay-v3';
+const CACHE = 'alba-pay-v4';
 const FILES = ['./', './index.html', './manifest.webmanifest', './icon-180.png', './icon-192.png', './icon-512.png', './duck.png'];
 
 self.addEventListener('install', e => {

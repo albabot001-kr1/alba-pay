@@ -62,7 +62,8 @@ header{position:sticky;top:0;z-index:5;background:color-mix(in srgb,var(--bg) 88
   -webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);
   display:flex;align-items:center;justify-content:space-between;padding:calc(14px + env(safe-area-inset-top)) 0 12px}
 .mtitle{border:0;background:none;padding:0;text-align:left;display:flex;flex-direction:column;line-height:1.15}
-.mtitle .y{font-size:13px;font-weight:600;color:var(--muted)}
+.mtitle .y{font-size:13px;font-weight:600;color:var(--muted);display:flex;align-items:center;gap:6px}
+.mtitle .me{background:var(--accent-soft);color:var(--accent-text);border-radius:7px;padding:1px 7px;font-weight:700;max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .mtitle .m{font-size:26px;font-weight:800;letter-spacing:-.03em}
 .navs{display:flex;gap:8px}
 .nav-btn{width:40px;height:40px;border-radius:50%;border:0;background:var(--surface);box-shadow:var(--shadow);display:grid;place-items:center;transition:transform .15s}
@@ -414,7 +415,7 @@ function calcMonth(y, m) {
 
 // ===== 화면 =====
 function render() {
-  $('#yLabel').textContent = `${ui.y}년`;
+  $('#yLabel').innerHTML = (myName() ? `<span class="me">${esc(myName())}님</span>` : '') + `${ui.y}년`;
   $('#mLabel').textContent = `${ui.m + 1}월`;
   document.querySelectorAll('nav.tabs button').forEach(b => b.classList.toggle('on', b.dataset.tab === ui.tab));
   $('#view').innerHTML = ui.tab === 'cal' ? viewCal() : ui.tab === 'log' ? viewLog() : ui.tab === 'pay' ? viewPay() : viewSet();
@@ -460,6 +461,9 @@ function walkDuck() {
   duckTimer = setTimeout(() => { body.className = 'duck-body ' + (p >= 1 ? 'cheer' : 'idle'); }, dur * 1000);
 }
 
+const myName = () => (state.pref.name || '').trim();
+const whose = () => myName() ? `${esc(myName())}님의 ` : '';
+
 function jobLabel(j) { return `${esc(j.academy)} · ${esc(j.type)}`; }
 
 function hero(label, net, stats) {
@@ -502,7 +506,7 @@ function viewCal() {
   const chips = state.jobs.map(j => `<button class="chip ${j.id === sel ? 'on' : ''}" style="--c:${j.color}" data-act="selJob" data-id="${j.id}">
     <span class="dot"></span>${jobLabel(j)}</button>`).join('') + `<button class="chip add" data-act="newJob">${ic('plus', 16)}추가</button>`;
   return `
-  ${hero(`${m + 1}월 예상 실수령액`, c.net, [['세전', won(c.gross)], ['근무', hrs(c.hours)], ['출근', c.days + '일']])}
+  ${hero(`${whose()}${m + 1}월 예상 실수령액`, c.net, [['세전', won(c.gross)], ['근무', hrs(c.hours)], ['출근', c.days + '일']])}
   <div class="seg" role="tablist">
     <button class="${mode === 'quick' ? 'on' : ''}" data-act="mode" data-mode="quick">${ic('bolt', 16)}빠른 체크</button>
     <button class="${mode === 'detail' ? 'on' : ''}" data-act="mode" data-mode="detail">${ic('pencil', 16)}시간 직접 입력</button>
@@ -553,7 +557,7 @@ function viewPay() {
       <div class="list">${items}</div></div>`;
   }).join('');
   return `
-  ${hero(`${y}년 ${m + 1}월 예상 실수령액`, c.net, [['세전', won(c.gross)], ['공제', c.ded ? '−' + won(c.ded) : '0원'], ['근무', hrs(c.hours)]])}
+  ${hero(`${whose()}${y}년 ${m + 1}월 예상 실수령액`, c.net, [['세전', won(c.gross)], ['공제', c.ded ? '−' + won(c.ded) : '0원'], ['근무', hrs(c.hours)]])}
   ${c.warns.map(warnBox).join('')}
   <div class="card">
     <div class="card-head"><h2>이번 달 합계</h2></div>
@@ -645,6 +649,15 @@ function viewSet() {
       <span class="muted">${ic('chev', 18)}</span>
     </div>`).join('') : `<div class="muted small">등록된 알바가 없어요.</div>`;
   return `
+  <div class="card">
+    <div class="card-head"><h2>내 정보</h2></div>
+    <label class="f" style="margin-top:0"><span>내 이름</span></label>
+    <div class="row">
+      <input class="in grow" id="nameIn" maxlength="20" placeholder="예: 김민수" value="${esc(myName())}" enterkeyhint="done">
+      <button class="btn sm" style="min-height:48px" data-act="saveName">저장</button>
+    </div>
+    <p class="hint">이름은 이 기기에만 저장돼요. 화면 맨 위에 표시돼서 내 기록을 보고 있는지 바로 알 수 있어요.</p>
+  </div>
   <div class="card">
     <div class="card-head"><h2>내 알바</h2><button class="btn soft sm" data-act="newJob">${ic('plus', 16)}추가</button></div>
     <div class="list">${jobs}</div>
@@ -790,6 +803,10 @@ const ACT = {
   selJob: t => { state.pref.selJob = t.dataset.id; save(); render(); },
   toggleTheme: () => { state.pref.theme = isDark() ? 'light' : 'dark'; save(); applyTheme(); if (ui.tab === 'set') render(); },
   setTheme: t => { state.pref.theme = t.dataset.theme; save(); applyTheme(); render(); },
+  saveName: () => {
+    state.pref.name = $('#nameIn').value.trim().slice(0, 20);
+    save(); render(); toast(myName() ? `${myName()}님, 반가워요!` : '이름을 지웠어요');
+  },
   logDay: t => { ui.editShift = null; sheetDay(t.dataset.k); },
   goal: () => {
     const pr = monthProgress(ui.y, ui.m);
@@ -808,7 +825,7 @@ const ACT = {
   },
   copyLog: async () => {
     const { y, m } = ui, last = new Date(y, m + 1, 0).getDate();
-    const lines = [`[${y}년 ${m + 1}월 출근부]`];
+    const lines = [`[${myName() ? myName() + ' ' : ''}${y}년 ${m + 1}월 출근부]`];
     let cnt = 0, hours = 0;
     for (let d = 1; d <= last; d++) {
       const list = shiftsOn(dkey(y, m, d)); if (!list.length) continue;
@@ -911,7 +928,7 @@ const ACT = {
     const blob = new Blob([JSON.stringify(state, null, 1)], { type: 'application/json' });
     const a = document.createElement('a'); const d = new Date();
     a.href = URL.createObjectURL(blob);
-    a.download = `알바월급-백업-${d.getFullYear()}${pad(d.getMonth() + 1)}${pad(d.getDate())}.json`;
+    a.download = `알바월급-${myName() ? myName() + '-' : ''}백업-${d.getFullYear()}${pad(d.getMonth() + 1)}${pad(d.getDate())}.json`;
     document.body.appendChild(a); a.click(); a.remove();
     setTimeout(() => URL.revokeObjectURL(a.href), 2000);
     toast('백업 파일을 저장했어요');
@@ -934,7 +951,7 @@ const ACT = {
   wipe: () => {
     if (!confirm('이 기기에 저장된 모든 알바와 근무 기록을 삭제할까요?\n삭제 전에 백업을 권장해요.')) return;
     snapshot();
-    state = { ver: 1, jobs: [], shifts: {}, pref: { mode: 'quick', selJob: null, theme: state.pref.theme } };
+    state = { ver: 1, jobs: [], shifts: {}, pref: { mode: 'quick', selJob: null, theme: state.pref.theme, name: state.pref.name } };
     save(); render(); toast('모두 삭제했어요', true);
   },
 };
@@ -965,7 +982,10 @@ document.addEventListener('change', e => {
     f.text().then(restore); e.target.value = '';
   }
 });
-document.addEventListener('keydown', e => { if (e.key === 'Escape') closeSheet(); });
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') closeSheet();
+  if (e.key === 'Enter' && e.target.id === 'nameIn') { e.preventDefault(); ACT.saveName(); }
+});
 
 document.querySelectorAll('[data-ic]').forEach(el => { el.innerHTML = ic(el.dataset.ic); });
 applyTheme();
